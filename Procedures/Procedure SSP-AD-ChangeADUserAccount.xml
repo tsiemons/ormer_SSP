@@ -1,0 +1,180 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScriptExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="SSP-AD-ChangeADUserAccount" treePres="3" id="1988296962" folderId="749097561253745" treeFullPath="SPP.AD">
+    <Body description="">
+      <Statement description="Get basic variables" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="AgentTempDirectory" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="KworkingDir" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="#adminDefaults.adminName#" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="Operator" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="MachineGroupID" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="MachineGroup" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="SspUid" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="SspUid" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Voer het TopDesk I-nummer in" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="TDNumber" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Achternaam" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="SurName" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Voornaam" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="GivenName" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="true">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Nieuwe gebruiersnaam" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="UserName" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="true">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Initialen" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="Initials" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="true">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Functie Profiel" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="Functiongroup" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="true">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Department" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="replacemail" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="true">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Department" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="addmail" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="true">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Department" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="removemail" />
+      </Statement>
+      <Statement name="GetVariable" continueOnFail="true">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="Prompt" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="Mail" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="E-mail" />
+      </Statement>
+      <Statement description="Write Ormer PowerShell Modules to destination Agent" name="WriteDirectory" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="%windir%\sysnative\WindowsPowerShell\v1.0\Modules\OrmLogging" />
+        <Parameter xsi:type="StringParameter" name="SourceDirectory" value="VSASharedFiles\OrmerICT\Scripts\Productie\Framework\Modules\OrmLogging\" />
+        <Parameter xsi:type="StringParameter" name="Param3" value="" />
+      </Statement>
+      <Statement name="WriteDirectory" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="%windir%\sysnative\WindowsPowerShell\v1.0\Modules\OrmToolkit" />
+        <Parameter xsi:type="StringParameter" name="SourceDirectory" value="VSASharedFiles\OrmerICT\Scripts\Productie\Framework\Modules\OrmToolkit\" />
+        <Parameter xsi:type="StringParameter" name="Param3" value="" />
+      </Statement>
+      <Statement description="Set the name of the script the procedure runs [CHANGE THIS FOR EVERY PROCEDURE]" name="GetVariable" continueOnFail="false">
+        <Parameter xsi:type="EnumParameter" name="VariableType" value="ConstantValue" />
+        <Parameter xsi:type="StringParameter" name="SourceContent" value="AD-Generic-NewADUserAccount.ps1" />
+        <Parameter xsi:type="StringParameter" name="VariableName" value="ScriptName" />
+      </Statement>
+      <Statement description="Write Procedure Script (and other required files) to the Kaseya Working Directory" name="WriteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#KworkingDir#\#ScriptName#" />
+        <Parameter xsi:type="StringParameter" name="ManagedFile" value="VSASharedFiles\OrmerICT\Scripts\Productie\ActiveDirectory\AD-Generic-NewADUserAccount.ps1" />
+        <Parameter xsi:type="BooleanParameter" name="DeleteAfter" value="False" />
+      </Statement>
+      <Statement description="Execute Procedure" name="Execute Shell Command - Get Results to Variable" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="powershell $env:USERDOMAIN" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="False" />
+        <Parameter xsi:type="StringParameter" name="Parameter3" value="System" />
+      </Statement>
+      <Statement name="ImpersonateUser" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="UserName" value="managedservices" />
+        <Parameter xsi:type="StringParameter" name="Password" value="CoveredPwd2::2e9e5b3206532fef063427a009f384" />
+        <Parameter xsi:type="StringParameter" name="Domain" value="#global:cmdresults#" />
+      </Statement>
+      <Statement name="Execute Powershell Command (64-bit, Run As User)" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="#KworkingDir#\#ScriptName#" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="-Operator &quot;#Operator#&quot; -TDNumber &quot;#TDNumber#&quot; -MachineGroup &quot;#MachineGroup#&quot; -KworkingDir &quot;#KworkingDir#&quot; -UserName &quot;#UserName#&quot; -sspuid &quot;#SspUid#&quot; -SurName &quot;#SurName#&quot; -Initials &quot;#Initials#&quot; -replacemail #replacemail# -removemail #removemail# -addmail #addmail#" />
+        <Parameter xsi:type="StringParameter" name="Parameter3" value="True" />
+      </Statement>
+      <If description="">
+        <Condition name="TestFile">
+          <Parameter xsi:type="StringParameter" name="Path" value="#KworkingDir#\ProcedureLog.log" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
+        </Condition>
+        <Then>
+          <Statement name="GetVariable" continueOnFail="false">
+            <Parameter xsi:type="EnumParameter" name="VariableType" value="FileContent" />
+            <Parameter xsi:type="StringParameter" name="SourceContent" value="#KworkingDir#\ProcedureLog.log" />
+            <Parameter xsi:type="StringParameter" name="VariableName" value="Log" />
+          </Statement>
+          <If description="">
+            <Condition name="CheckVariable">
+              <Parameter xsi:type="StringParameter" name="VariableName" value="#TDNumber#" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+              <Parameter xsi:type="StringParameter" name="Value" value="I" />
+            </Condition>
+            <Then>
+              <Statement name="SendEmail" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="To" value="topdesk-reply@ormer.nl" />
+                <Parameter xsi:type="StringParameter" name="Subject" value="Resultaat - #TDNumber# - #MachineGroup#" />
+                <Parameter xsi:type="MultiLineStringParameter" name="Body" value="#Log#" />
+              </Statement>
+            </Then>
+          </If>
+          <Statement name="Transfer File" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Parameter1" value="ormer66.srv.outsourcing.ormer" />
+            <Parameter xsi:type="StringParameter" name="Parameter2" value="#KworkingDir#\ProcedureLog.log" />
+            <Parameter xsi:type="StringParameter" name="Parameter3" value="C:\kworking\ProcedureLog.log" />
+          </Statement>
+          <Statement name="ScheduleScript" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="ScriptName" value="1851211768" />
+            <Parameter xsi:type="StringParameter" name="TimeDelay" value="0" />
+            <Parameter xsi:type="StringParameter" name="MachineID" value="ormer66.srv.outsourcing.ormer" />
+          </Statement>
+        </Then>
+        <Else>
+          <If description="">
+            <Condition name="CheckVariable">
+              <Parameter xsi:type="StringParameter" name="VariableName" value="#TDNumber#" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Contains" />
+              <Parameter xsi:type="StringParameter" name="Value" value="I" />
+            </Condition>
+            <Then>
+              <Statement name="SendEmail" continueOnFail="false">
+                <Parameter xsi:type="StringParameter" name="To" value="topdesk-reply@ormer.nl" />
+                <Parameter xsi:type="StringParameter" name="Subject" value="Resultaat - #TDNumber# - #MachineGroup#" />
+                <Parameter xsi:type="MultiLineStringParameter" name="Body" value="No Logfile was found" />
+              </Statement>
+            </Then>
+          </If>
+        </Else>
+      </If>
+      <Statement description="Perform Cleanup" name="Delete Directory" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="%windir%\sysnative\WindowsPowerShell\v1.0\Modules\OrmLogging" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="true" />
+      </Statement>
+      <Statement name="Delete Directory" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Parameter1" value="%windir%\sysnative\WindowsPowerShell\v1.0\Modules\OrmToolkit" />
+        <Parameter xsi:type="StringParameter" name="Parameter2" value="true" />
+      </Statement>
+      <Statement name="DeleteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#KworkingDir#\#ScriptName#" />
+      </Statement>
+      <Statement name="DeleteFile" continueOnFail="false">
+        <Parameter xsi:type="StringParameter" name="Path" value="#KworkingDir#\ProcedureLog.log" />
+      </Statement>
+    </Body>
+  </Procedure>
+</ScriptExport>
