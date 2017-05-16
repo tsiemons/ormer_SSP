@@ -83,9 +83,6 @@ param (
     [String] $removeMail,
 	
     [Parameter(Mandatory=$false)]
-    [String] $PrimaryMail,
-	
-    [Parameter(Mandatory=$false)]
     [String] $addMail,
 
  	[Parameter(Mandatory=$false)]
@@ -262,11 +259,11 @@ param (
 #region Change user account
 $user = $false
 if ($username.length -gt 15){
-    $user = get-aduser -filter { extensionattribute15 -like $username } -Properties extensionattribute15, proxyaddresses
+    $user = get-aduser -filter {extensionattribute15 -like $username}
     $username = $user.samaccountname
 }
 Else {
-    $user = get-aduser $username -Properties extensionattribute15,proxyaddresses
+    $user = get-aduser $username
 }
 
 if ($user){
@@ -281,8 +278,7 @@ else{
 # Import XML
 if ($insertion -eq "<none>"){$insertion=""}
 [XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
-#generate vars
-$companyid = $adsettings.customer.companyguid
+# Create vars
 $NC_Name = Convert-formatstring -tring $adsettings.customer.NC_Name
 $NC_DisplayName = Convert-formatstring -tring $adsettings.customer.NC_DisplayName
 $NC_DisplayName = $NC_DisplayName.replace("  "," ")
@@ -298,7 +294,7 @@ else {
 if ($department -eq "<None>"){
     $NC_path = "$($adsettings.Customer.AD_userpath)"
     move-adobject -identity $user -Targetpath "$($adsettings.Customer.AD_userpath)"
-    $sspresult = "$sspresult Department: User to user OU;"
+    $result = "$Result Department: User to user OU;"
 }
 else {
     $NC_path = "OU=$($department),$($adsettings.Customer.AD_userpath)"
@@ -306,84 +302,51 @@ else {
     if ($NC_email -notlike "*@*"){$NC_Email = "$($NC_Email)@$($dep.SMTPDomain)"}
     move-adobject -identity $user -Targetpath $NC_path
 }
-if ($primarymail -like "*@*"){
-    $primarymail = $primarymail.tolower()
-    $addresses = @()
-    if ($user.proxyaddresses -match "SMTP:$primarymail"){
-        foreach ($address in $user.proxyaddresses){
-            if ($address -eq "smtp:$primarymail"){
-                $tempaddress = $address.replace("smtp:","SMTP:")
-                $addresses += $tempaddress    
-            }
-            Else{
-                $tempaddress = $address -replace "smtp:","smtp:"
-                $addresses += $tempaddress
-            }
-        }
-        $sspresult = "$sspresult Primaryemail exists is made primary;"
-    }
-    Else{
-        foreach ($address in $user.proxyaddresses){
-                $tempaddress = $address -replace "smtp:","smtp:"
-                $addresses += $tempaddress
-            }
-        $addresses += "SMTP:$primarymail"
-    }
-    $user |set-aduser -replace @{proxyaddresses=$addresses}
-    $sspresult = "$sspresult Primarymail $primarymail;"
-}
 
 if ($removemail -like "*@*"){
-    $removemail = $removemail.tolower()
-    if ($user.proxyaddresses -cmatch "SMTP:$removemail"){
-        $sspresult = "$sspresult Failed, Removemail $removemail is primary;"
-    }
-    Else{
-        $user |set-aduser -remove @{proxyaddresses="smtp:$removemail"}
-        $sspresult = "$sspresult Removemail $removemail;"
-    }
+    $user |set-aduser -remove @{proxyaddresses="smtp:$removemail"}
+    $result = "$Result Removemail $removemail;"
 }
 if ($addmail -like "*@*"){
-    $addmail=$addmail.tolower()
     $user |set-aduser -add @{proxyaddresses="smtp:$addmail"}
-    $sspresult = "$sspresult Addmail $addmail;"
+    $result = "$Result Addmail $addmail;"
 }
 
 
 if ($newusername -eq "<None>"){
     $user |set-aduser -SamAccountName $NC_SAM
-    $sspresult = "$sspresult Samaccountname changed to default $NC_SAM;"
+    $result = "$result Samaccountname changed to default $NC_SAM;"
 }
 Else{
     if ($newusername -ne $username){
         $user| Set-aduser -SamAccountName $newusername
         New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Username $username changed into $newusername"
-        $sspresult = "$sspresult Username $username changed into $newusername;"
+        $result = "$result Username $username changed into $newusername;"
     }
 }
 if ($surname -ne $user.surname){
     $user |set-aduser -Surname $surname
     New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Surname $($user.surname) changed into $surname"
-    $sspresult = "$sspresult Surname $($user.surname) changed into $surname;"
+    $result = "$result Surname $($user.surname) changed into $surname;"
 }
 if ($insertion -eq "<None>"){
     $user |set-aduser -DisplayName $NC_DisplayName
     New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Insertion removed"
-    $sspresult = "$sspresult Insertion removed;"
+    $result = "$result Insertion removed;"
 }
 if ($givenname -ne $user.GivenName){
     $user |set-aduser -givenname $givenname
     New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Given name $($user.givenname) changed into $givenname"
-    $sspresult = "$sspresult Given name $($user.givenname) changed into $givenname;"
+    $result = "$result Given name $($user.givenname) changed into $givenname;"
 }
 if ($NC_DisplayName -ne $user.displayname){
     $user |set-aduser -displayname $NC_DisplayName
     New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Display name $($user.displayname) changed into $nc_displayname"
-    $sspresult = "$sspresult Display name $($user.displayname) changed into $nc_displayname;"
+    $result = "$result Display name $($user.displayname) changed into $nc_displayname;"
 }
 #endregion Change user account
 #region Add to group
-$functiongroups = 
+
 ForEach ($Function in $Functions){
     Add-ADGroupMember -identity $Function -Members $username -ErrorAction Stop
 }
@@ -399,9 +362,9 @@ $ssplogvar = New-Object -TypeName PSObject -Property @{
 'youweID'=$TDNumber
 'sspUid'=$($user.extensionattribute15)
 'action'= $myinvocation.mycommand.Name
-'parameters'= (get-content $KworkingDir\param.txt -Tail 1).replace("")
+'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
-'companyID'= $companyid
+'companyID'= $Kaseyagroup
 'last_changed'= (get-aduser $nc_sam -prop whenchanged|select-object -expand whenchanged)
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation

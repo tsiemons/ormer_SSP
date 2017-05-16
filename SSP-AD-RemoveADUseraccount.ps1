@@ -62,6 +62,9 @@ param (
 
     # Procedure vars
     [Parameter(Mandatory=$false)]
+    [String] $kaseyagroup,
+
+    [Parameter(Mandatory=$true)]
     [String] $UserName
 
 )
@@ -229,24 +232,40 @@ param (
 
 #endregion functions
 
-#region Create user account
+#region Remove user account
 
 # Import XML
-[XML]$adsettings=get-content "C:\Temp\Test.xml"
+[XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
+$companyid = $adsettings.customer.companyguid
+
 
 #set additional proprties
 if ($username.length -gt 15){
     $username = (get-aduser -filter {extensionattribute15 -like $username}).samaccountname
 }
 
-Disable-aduser $username 
-Get-adobject $username |move-adobject "OU=ToBeRemoved,$($adsettings.Customer.AD_userpath)"
+Disable-adaccount $username 
+Get-ADUser $username | Move-ADObject -TargetPath "OU=ToBeRemoved,$($adsettings.Customer.AD_userpath)"
+Set-ADUser $username -Description "Removed by SSP on $(get-date)"
+$sspresult = "set to remove user $username"
 
 #region Add to group
 
 #endregion Add to group
  
  
-    New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "END title: $procname Script"
+New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "END title: $procname Script"
+$ssplog = "$Kworkingdir\$TDNumber.csv"
+$ssplogvar = New-Object -TypeName PSObject -Property @{
+'logID'=([guid]::NewGuid()).guid
+'youweID'=$TDNumber
+'sspUid'=$(get-aduser $username -prop extensionattribute15 |select -ExpandProperty extensionattribute15)
+'action'= $myinvocation.mycommand.Name
+'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
+'result'= $sspresult
+'companyID'= $companyid
+'last_changed'= (get-aduser $username -prop whenchanged|select-object -expand whenchanged)
+}
+$ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
 
 #endregion Execution

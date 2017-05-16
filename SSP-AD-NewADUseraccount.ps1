@@ -82,6 +82,12 @@ param (
 	[Parameter(Mandatory=$true)]
     [String] $SspUid,
 
+	[Parameter(Mandatory=$true)]
+    [String] $passwd,
+
+	[Parameter(Mandatory=$true)]
+    [String] $Kaseyagroup,
+
 	[Parameter(Mandatory=$false)]
     [String] $Department
 )
@@ -248,32 +254,51 @@ param (
 }
 
 #endregion functions
+#startregion ssplog
+$ssplog = "$Kworkingdir\$TDNumber.csv"
+$logvar = New-Object -TypeName PSObject -Property @{
+    'Domain' = $Domain 
+    'MachineName' = $MachineName
+    'procname' = $procname
+    'Customer' = $Customer
+    'Operator'= $Operator
+    'TDNumber'= $TDNumber
+}
+
+
+#endregion ssplog
 
 #region Create user account
+if ($insertion -eq "<None>"){
+    $insertion = ""
+}
 
 # Import XML
-[XML]$adsettings=get-content "C:\Temp\Test.xml"
-
-$NewPassword = New-RandomComplexPassword -Length (Get-ADDefaultDomainPasswordPolicy | Select-Object -ExpandProperty MinPasswordLength)
+[XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
+$companyid = $adsettings.customer.companyguid
+#$NewPassword = New-RandomComplexPassword -Length (Get-ADDefaultDomainPasswordPolicy | Select-Object -ExpandProperty MinPasswordLength)
 
 # Create vars
 $NC_Name = Convert-formatstring -tring $adsettings.customer.NC_Name
 
 $NC_DisplayName = Convert-formatstring -tring $adsettings.customer.NC_DisplayName
+$NC_DisplayName = $NC_DisplayName.replace("  "," ")
 
-if (($adsettings.customer.NC_SAM) -eq "<None>"){
+if ($username -eq "<None>"){
     $NC_SAM = Convert-formatstring -tring $adsettings.customer.NC_SAM
 }
 else {
     $NC_SAM = $username
 }
 
-if (($adsettings.customer.NC_Email) -eq "<None>"){
+if ($Mail -eq "<None>"){
     $NC_Email = Convert-formatstring -tring $adsettings.customer.NC_Email
 }
+
 else {
     $NC_Email = $mail
 }
+
 
 if ($department -eq "<None>"){
     $NC_path = "$($adsettings.Customer.AD_userpath)"
@@ -284,7 +309,6 @@ else {
     $dep = $adsettings.customer.departments.department |where-object name -like "$department"
     if ($NC_email -notlike "*@*"){$NC_Email = "$($NC_Email)@$($dep.SMTPDomain)"}
 }
-
 # Hier moet nog via Department het juiste SMTPDomain worden gekozen
 
 
@@ -297,7 +321,7 @@ else {
 			'Displayname' = $NC_DisplayName
 			'Samaccountname' = $NC_SAM
 			'UserPrincipalName' = $NC_Email
-			'AccountPassword' = (ConvertTo-SecureString -AsPlainText $NewPassword -Force)
+			'AccountPassword' = (ConvertTo-SecureString -AsPlainText $Passwd -Force)
 			'Enabled' = $true
 			'ChangePasswordAtLogon' = $false
 			'Path' = $NC_Path
@@ -327,24 +351,43 @@ else {
 Add-Type -AssemblyName System.DirectoryServices.AccountManagement
 $ct = [System.DirectoryServices.AccountManagement.ContextType]::Domain
 $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext $ct,$Domain
-If ($pc.ValidateCredentials($UserName,$NewPassword) -eq $true) {
+If ($pc.ValidateCredentials($NC_SAM,$passwd) -eq $true) {
     New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Authentication successfully"
+    $sspresult = "Succes: User is verified"
     }
 else {
     New-OrmLog -logvar $logvar -status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message "Authentication not successful"
+    $sspresult = "Failed: User could not be verified"
 }
 
 #endregion Test user login
 
 #region Add to group
-$functions = $functions -split ";"
-ForEach ($Function in $Functions){
-		Add-ADGroupMember -identity $Function -Members $nc_sam -ErrorAction Stop
+$Employeefunctions = $functions -split ";"
+ForEach ($employeeFunction in $EmployeeFunctions){
+		Add-ADGroupMember -identity $employeeFunction -Members $nc_sam -ErrorAction Stop
+        New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "$NC_SAM added to $employeefunction"
 	}
 
 #endregion Add to group
  
  
     New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "END title: $procname Script"
+
+#startregion ssplog
+$ssplog = "$Kworkingdir\$TDNumber.csv"
+$ssplogvar = New-Object -TypeName PSObject -Property @{
+'logID'=([guid]::NewGuid()).guid
+'youweID'=$TDNumber
+'sspUid'=$SspUid
+'action'= $myinvocation.mycommand.Name
+'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
+'result'= $sspresult
+'companyID'= $companyid
+'last_changed'= (get-aduser $nc_sam -prop whenchanged|select-object -expand whenchanged)
+}
+$ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
+
+#endregion ssplog
 
 #endregion Execution

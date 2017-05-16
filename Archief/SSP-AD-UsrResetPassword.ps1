@@ -49,12 +49,11 @@ param (
     [string]$KworkingDir,
 
     # Procedure vars
-	[Parameter(Mandatory = $true)]
-	[String]$KaseyaGroup,
     [Parameter(Mandatory=$true)]
-	[String]$Username,
-	[Parameter(Mandatory = $true)]
-	[String]$Password
+    [String] $Passwd,
+
+    [Parameter(Mandatory=$true)]
+    [String] $UserName
 )
 
 #region StandardFramework
@@ -219,19 +218,19 @@ Function New-RandomComplexPassword
 New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Reset user password"
 try
 {
-    Set-ADAccountPassword -identity $UserName -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $Password -Force) -ErrorAction SilentlyContinue -ErrorVariable setadacccountpassworderror
+    Set-ADAccountPassword -identity $UserName -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $passwd -Force) -ErrorAction SilentlyContinue -ErrorVariable setadacccountpassworderror
 }
 catch
 {
     $setadacccountpassworderror = $_.Exception
 }
-
 if ($setadacccountpassworderror)
 {
     New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message "Error occured setting the AD password"
     New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message $setadacccountpassworderror.Message
     New-OrmLog -logvar $logvar -Status 'Failure' -LogDir $KworkingDir -ErrorAction Stop -Message "END title: $procname Script"
     $sspresult = "Set password failed"
+
     Break
 }
 else
@@ -239,7 +238,6 @@ else
     New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "New AD User PassWord is set"
     $sspresult = "Set password succeeded"
 }
-
 try {
     Set-ADuser -identity $UserName -PasswordNeverExpires $false -ErrorAction SilentlyContinue -ErrorVariable setadusererror
 }
@@ -327,19 +325,17 @@ else
 #endregion Test user login
 
 New-OrmLog -logvar $logvar -Status 'Success' -LogDir $KworkingDir -ErrorAction Stop -Message "END title: $procname Script"
-[XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
-$companyid = $adsettings.customer.companyguid
 
 $ssplog = "$Kworkingdir\$TDNumber.csv"
 $ssplogvar = New-Object -TypeName PSObject -Property @{
 'logID'=([guid]::NewGuid()).guid
 'youweID'=$TDNumber
-'sspUid'=$(get-aduser $UserName -prop extensionattribute15 |Select-Object -ExpandProperty extensionattribute15)
+'sspUid'=$(get-aduser $username -prop extensionattribute15 |Select-Object -ExpandProperty extensionattribute15)
 'action'= $myinvocation.mycommand.Name
 'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
-'companyID'= $Companyid
-'last_changed'= (get-aduser $UserName -prop whenchanged|select-object -expand whenchanged)
+'companyID'= $Kaseyagroup
+'last_changed'= (get-aduser $nc_sam -prop whenchanged|select-object -expand whenchanged)
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
 #endregion Execution
