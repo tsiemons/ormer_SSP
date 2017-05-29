@@ -245,8 +245,7 @@ if ($username.length -gt 15){
 }
 
 Disable-adaccount $username 
-Get-ADUser $username | Move-ADObject -TargetPath "OU=ToBeRemoved,$($adsettings.Customer.AD_userpath)"
-Set-ADUser $username -Description "Removed by SSP on $(get-date)"
+Get-ADUser $username | remove-aduser -confirm:$false
 $sspresult = "set to remove user $username"
 
 #region Add to group
@@ -259,12 +258,12 @@ $ssplog = "$Kworkingdir\$TDNumber.csv"
 $ssplogvar = New-Object -TypeName PSObject -Property @{
 'logID'=([guid]::NewGuid()).guid
 'youweID'=$TDNumber
-'sspUid'=$(get-aduser $username -prop extensionattribute15 |select -ExpandProperty extensionattribute15)
+'sspUid'=$(get-aduser $UserName -prop extensionattribute15 -erroraction SilentlyContinue |Select-Object -ExpandProperty extensionattribute15)
 'action'= $myinvocation.mycommand.Name
 'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
-'companyID'= $companyid
-'last_changed'= (get-aduser $username -prop whenchanged|select-object -expand whenchanged)
+'companyID'= $Companyid
+'last_changed'= get-date (get-aduser $username -prop whenchanged -ErrorAction SilentlyContinue|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
 

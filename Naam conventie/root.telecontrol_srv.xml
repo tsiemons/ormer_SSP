@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Customer>
-<companyguid>14ae3b88-eec0-4b30-a1f3-efe665bed1d1</companyguid>
+<companyguid>653be61eaba067db4a866b123524b5197b6900c7b66e33f0f8274569560400e4</companyguid>
 <AD_userpath>OU=Users,OU=Telecontrol,DC=telecontrol,DC=local</AD_userpath>
 <AD_functionpath>OU=Functie,OU=Groups,OU=Telecontrol,DC=telecontrol,DC=local</AD_functionpath>
 <NC_Displayname>%G %I %S</NC_Displayname>

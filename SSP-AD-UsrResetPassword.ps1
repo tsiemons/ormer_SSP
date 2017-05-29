@@ -334,12 +334,12 @@ $ssplog = "$Kworkingdir\$TDNumber.csv"
 $ssplogvar = New-Object -TypeName PSObject -Property @{
 'logID'=([guid]::NewGuid()).guid
 'youweID'=$TDNumber
-'sspUid'=$(get-aduser $UserName -prop extensionattribute15 |Select-Object -ExpandProperty extensionattribute15)
+'sspUid'=$(get-aduser $UserName -prop extensionattribute15 -erroraction SilentlyContinue |Select-Object -ExpandProperty extensionattribute15)
 'action'= $myinvocation.mycommand.Name
 'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
 'companyID'= $Companyid
-'last_changed'= (get-aduser $UserName -prop whenchanged|select-object -expand whenchanged)
+'last_changed'= get-date (get-aduser $username -prop whenchanged -ErrorAction SilentlyContinue|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
 #endregion Execution

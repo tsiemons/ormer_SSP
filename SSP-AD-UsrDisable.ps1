@@ -153,7 +153,14 @@ if ($Username.length -gt 15){
 
 #region Disable Account
     New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Disable user account: `'$($Username)`'" -ErrorAction Stop
-    Disable-ADAccount -Identity $Username
+    try{
+        Disable-ADAccount -Identity $Username
+        $sspresult = "Success: Disabled $username"
+    }
+    Catch{
+        $sspresult = "Disable $username not succeeded "
+    }
+
 #endregion Disable Account
 [XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
 $companyid = $adsettings.customer.companyguid
@@ -164,12 +171,12 @@ $ssplog = "$Kworkingdir\$TDNumber.csv"
 $ssplogvar = New-Object -TypeName PSObject -Property @{
 'logID'=([guid]::NewGuid()).guid
 'youweID'=$TDNumber
-'sspUid'=$(get-aduser $Username -prop extensionattribute15 |select -ExpandProperty extensionattribute15)
+'sspUid'=$(get-aduser $UserName -prop extensionattribute15 -erroraction SilentlyContinue |Select-Object -ExpandProperty extensionattribute15)
 'action'= $myinvocation.mycommand.Name
 'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
-'companyID'= $companyid
-'last_changed'= (get-aduser $Username -prop whenchanged|select-object -expand whenchanged)
+'companyID'= $Companyid
+'last_changed'= get-date (get-aduser $username -prop whenchanged -ErrorAction SilentlyContinue|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
 

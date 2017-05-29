@@ -384,7 +384,7 @@ $ssplogvar = New-Object -TypeName PSObject -Property @{
 'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
 'companyID'= $companyid
-'last_changed'= (get-aduser $nc_sam -prop whenchanged|select-object -expand whenchanged)
+'last_changed'= get-date (get-aduser $nc_sam -prop whenchanged|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
 

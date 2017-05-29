@@ -279,10 +279,13 @@ else{
 }
 
 # Import XML
-if ($insertion -eq "<none>"){$insertion=""}
 [XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
 #generate vars
 $companyid = $adsettings.customer.companyguid
+if ($insertion -eq "none"){
+    $insertion = ""
+}
+
 $NC_Name = Convert-formatstring -tring $adsettings.customer.NC_Name
 $NC_DisplayName = Convert-formatstring -tring $adsettings.customer.NC_DisplayName
 $NC_DisplayName = $NC_DisplayName.replace("  "," ")
@@ -297,14 +300,14 @@ else {
 
 if ($department -eq "<None>"){
     $NC_path = "$($adsettings.Customer.AD_userpath)"
-    move-adobject -identity $user -Targetpath "$($adsettings.Customer.AD_userpath)"
+    move-adobject -identity $user.distinguishedname -Targetpath "$($adsettings.Customer.AD_userpath)" -confirm:$false
     $sspresult = "$sspresult Department: User to user OU;"
 }
 else {
     $NC_path = "OU=$($department),$($adsettings.Customer.AD_userpath)"
     $dep = $adsettings.customer.departments.department |where-object name -like "$department"
     if ($NC_email -notlike "*@*"){$NC_Email = "$($NC_Email)@$($dep.SMTPDomain)"}
-    move-adobject -identity $user -Targetpath $NC_path
+    move-adobject -identity $user.distinguishedname -Targetpath $NC_path -confirm:$false
 }
 if ($primarymail -like "*@*"){
     $primarymail = $primarymail.tolower()
@@ -329,7 +332,7 @@ if ($primarymail -like "*@*"){
             }
         $addresses += "SMTP:$primarymail"
     }
-    $user |set-aduser -replace @{proxyaddresses=$addresses}
+    $user |set-aduser -replace @{proxyaddresses=$addresses} -userprincipalname $primarymail -emailaddress $primarymail
     $sspresult = "$sspresult Primarymail $primarymail;"
 }
 
@@ -366,7 +369,7 @@ if ($surname -ne $user.surname){
     New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Surname $($user.surname) changed into $surname"
     $sspresult = "$sspresult Surname $($user.surname) changed into $surname;"
 }
-if ($insertion -eq "<None>"){
+if ($insertion -eq "none"){
     $user |set-aduser -DisplayName $NC_DisplayName
     New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Insertion removed"
     $sspresult = "$sspresult Insertion removed;"
@@ -383,7 +386,10 @@ if ($NC_DisplayName -ne $user.displayname){
 }
 #endregion Change user account
 #region Add to group
-$functiongroups = 
+$functiongroups = get-adgroup -searchbase "$($adsettings.Customer.AD_functionpath)" -filter *
+Foreach ($functiongroup in $functiongroups){
+    $functiongroup |remove-adgroupmember -members $user.sid -confirm:$false
+}
 ForEach ($Function in $Functions){
     Add-ADGroupMember -identity $Function -Members $username -ErrorAction Stop
 }
@@ -397,12 +403,12 @@ $ssplog = "$Kworkingdir\$TDNumber.csv"
 $ssplogvar = New-Object -TypeName PSObject -Property @{
 'logID'=([guid]::NewGuid()).guid
 'youweID'=$TDNumber
-'sspUid'=$($user.extensionattribute15)
+'sspUid'=$(get-aduser $UserName -prop extensionattribute15 -erroraction SilentlyContinue |Select-Object -ExpandProperty extensionattribute15)
 'action'= $myinvocation.mycommand.Name
-'parameters'= (get-content $KworkingDir\param.txt -Tail 1).replace("")
+'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
-'companyID'= $companyid
-'last_changed'= (get-aduser $nc_sam -prop whenchanged|select-object -expand whenchanged)
+'companyID'= $Companyid
+'last_changed'= get-date (get-aduser $username -prop whenchanged -ErrorAction SilentlyContinue|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
 
