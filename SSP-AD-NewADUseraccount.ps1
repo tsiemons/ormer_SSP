@@ -339,6 +339,7 @@ else {
         'proxyAddresses' = "SMTP:$($NC_Email)"
         'mailNickname' = "$NC_SAM"
         'Extensionattribute15' = "$SspUid"
+        'Extensionattribute14' = "$insertion"
     }
     set-aduser -identity $nc_sam -add $secProperties
 
