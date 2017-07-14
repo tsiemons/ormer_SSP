@@ -153,12 +153,13 @@ if ($Username.length -gt 15){
 
 #region Disable Account
     New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Disable user account: `'$($Username)`'" -ErrorAction Stop
-    try{
-        Disable-ADAccount -Identity $Username
-        $sspresult = "Success: Disabled $username"
+    
+    Disable-ADAccount -Identity $Username -ErrorVariable aderror
+    if ($aderror -gt 0){
+        $sspresult = "Gereed|$username is geblokkeerd"
     }
     Catch{
-        $sspresult = "Disable $username not succeeded "
+        $sspresult = "Mislukt|$username is niet geblokkeerd $aderror"
     }
 
 #endregion Disable Account

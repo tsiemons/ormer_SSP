@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Customer>
-<companyguid>14ae3b88-eec0-4b30-a1f3-efe665bed1d1</companyguid>
+<companyguid>779e204330bf95e1432f79c21d163e3e393b356c36eca52e41c387825e30df0e</companyguid>
 <AD_userpath>OU=Users,OU=Telecontrol,DC=telecontrol,DC=local</AD_userpath>
-<AD_functionpath>OU=Functie,OU=Groups,OU=Telecontrol,DC=telecontrol,DC=local</AD_functionpath>
+<AD_functionpath></AD_functionpath>
 <NC_Displayname>%G %I %S</NC_Displayname>
 <NC_Distrgroup></NC_Distrgroup>
 <NC_Email>%G1.%S</NC_Email>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Customer>
+<companyguid>5f47d46520c51384d8f5cd87d036e7db956033e97e70df09aa538241b9dd7e31</companyguid>
+<AD_userpath>OU=Users,OU=ROGPlus,DC=rogplus,DC=local</AD_userpath>
+<AD_functionpath></AD_functionpath>
+<NC_Displayname>%G %I %S</NC_Displayname>
+<NC_Distrgroup></NC_Distrgroup>
+<NC_Email>%G1%S</NC_Email>
+<NC_Name>%G %I %S</NC_Name>
+<NC_SAM>%G1%S</NC_SAM>
+<NC_UPN>%G1%S</NC_UPN>
+<NC_IN>.</NC_IN>
+<SMTPDomain>rogplus.nl</SMTPDomain>
+<Profiles>1,2,3</Profiles>
+<Departments>
+ </Departments>
+<InfraType>O365</InfraType>
+</Customer>

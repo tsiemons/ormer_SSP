@@ -285,50 +285,75 @@ $companyid = $adsettings.customer.companyguid
 if (($surname -ne $user.surname) -or ($insertion -eq "<none>") -or ($insertion -ne $user.extensionattribute14) -or ($givenname -ne $user.GivenName)){
     if ($insertion -eq "<none>"){
         $insertion = ""
-        $user |set-aduser -replace @{extensionattribute14=$insertion}
+        $user |set-aduser -clear extensionattribute14 -ErrorVariable Aderror
         New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Removed insertion"
         $sspresult = "$sspresult Removed insertion;"
     }
     #$NC_Name = Convert-formatstring -tring $adsettings.customer.NC_Name
-    $NC_DisplayName = Convert-formatstring -tring $adsettings.customer.NC_DisplayName
-    $NC_DisplayName = $NC_DisplayName.replace("  "," ")
-    $NC_SAM = Convert-formatstring -tring $adsettings.customer.NC_SAM
 
     if ($insertion -ne $user.extentionattribute14){
-        $user |set-aduser -replace @{extensionattribute14=$insertion}
+        $user |set-aduser -replace @{extensionattribute14=$insertion} -ErrorVariable aderror
         New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "insertion $($user.extensionattribute14) changed into $insertion"
         $sspresult = "$sspresult insertion $($user.extensionattribute14) changed into $insertion;"
     }
 
     if ($givenname -ne $user.GivenName){
-        $user |set-aduser -givenname $givenname
+        $user |set-aduser -givenname $givenname -ErrorVariable
         New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Given name $($user.givenname) changed into $givenname"
         $sspresult = "$sspresult Given name $($user.givenname) changed into $givenname;"
     }
 
     if ($surname -ne $user.surName){
-        $user |set-aduser -givenname $givenname
+        $user |set-aduser -surname $surname -ErrorVariable aderror
         New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Given name $($user.surname) changed into $surname"
         $sspresult = "$sspresult Given name $($user.surname) changed into $surname;"
     }
-    $user |set-aduser -DisplayName $NC_DisplayName
+
+    if ($newusername -ne $user.samaccountname){
+        if ($newusername -eq "<none>" ){
+            $NC_SAM = Convert-formatstring -tring $adsettings.customer.NC_sam
+            $username = $NC_SAM
+            $user |set-aduser -SamAccountName $NC_SAM -ErrorVariable aderror
+            $user = get-aduser $NC_SAM -Properties extensionattribute14,extensionattribute15,proxyaddresses -ErrorVariable aderror
+            New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "login $($user.samaccountname) changed into $NC_SAM"
+            $sspresult = "$sspresult login $($user.samaccountname) changed into $newusername;"
+        }
+        Else{
+            $user |set-aduser -SamAccountName $newusername
+            $user = get-aduser $newusername -Properties extensionattribute14,extensionattribute15,proxyaddresses -ErrorVariable aderror
+            $username = $newusername
+            New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "login $($user.samaccountname) changed into $newusername"
+            $sspresult = "$sspresult login $($user.samaccountname) changed into $newusername;"
+        }
+    }
+
+    $NC_DisplayName = Convert-formatstring -tring $adsettings.customer.NC_DisplayName
+    $NC_DisplayName = $NC_DisplayName.replace("  "," ")
+    $user |set-aduser -DisplayName $NC_DisplayName -ErrorVariable aderror
+
     if ($primaryMail -eq "<None>"){
         $NC_Email = Convert-formatstring -tring $adsettings.customer.NC_Email
-        if (!($primarymail -like "*@*")){$primarymail=$NC_Email}
+        if ($department -eq "<None>"){
+            $primarymail = "$($NC_Email)@$($adsettings.Customer.SMTPDomain)"
+        }
+        else {
+            $dep = $adsettings.customer.departments.department |where-object name -like "$department"
+            $primarymail = "$($NC_Email)@$($dep.SMTPDomain)"
+        }
     }
 }
 
 
 if ($department -eq "<None>"){
     $NC_path = "$($adsettings.Customer.AD_userpath)"
-    move-adobject -identity $user.distinguishedname -Targetpath "$($adsettings.Customer.AD_userpath)" -confirm:$false
+    move-adobject -identity $user.distinguishedname -Targetpath "$($adsettings.Customer.AD_userpath)" -confirm:$false -ErrorVariable aderror
     $sspresult = "$sspresult Department: User to user OU;"
 }
 else {
     $NC_path = "OU=$($department),$($adsettings.Customer.AD_userpath)"
     $dep = $adsettings.customer.departments.department |where-object name -like "$department"
     if ($NC_email -notlike "*@*"){$NC_Email = "$($NC_Email)@$($dep.SMTPDomain)"}
-    move-adobject -identity $user.distinguishedname -Targetpath $NC_path -confirm:$false
+    move-adobject -identity $user.distinguishedname -Targetpath $NC_path -confirm:$false -ErrorVariable aderror
 }
 if ($primarymail -like "*@*"){
     $primarymail = $primarymail.tolower()
@@ -336,7 +361,7 @@ if ($primarymail -like "*@*"){
     if ($user.proxyaddresses -match "SMTP:$primarymail"){
         foreach ($address in $user.proxyaddresses){
             if ($address -eq "smtp:$primarymail"){
-                $tempaddress = $address.replace("smtp:","SMTP:")
+                $tempaddress = $address -replace "smtp:","SMTP:"
                 $addresses += $tempaddress    
             }
             Else{
@@ -353,7 +378,7 @@ if ($primarymail -like "*@*"){
             }
         $addresses += "SMTP:$primarymail"
     }
-    $user |set-aduser -replace @{proxyaddresses=$addresses} -userprincipalname $primarymail -emailaddress $primarymail
+    $user |set-aduser -replace @{proxyaddresses=$addresses} -userprincipalname $primarymail -emailaddress $primarymail -ErrorVariable aderror
     $sspresult = "$sspresult Primarymail $primarymail;"
 }
 
@@ -363,28 +388,17 @@ if ($removemail -like "*@*"){
         $sspresult = "$sspresult Failed, Removemail $removemail is primary;"
     }
     Else{
-        $user |set-aduser -remove @{proxyaddresses="smtp:$removemail"}
+        $user |set-aduser -remove @{proxyaddresses="smtp:$removemail"} -ErrorVariable aderror
         $sspresult = "$sspresult Removemail $removemail;"
     }
 }
 if ($addmail -like "*@*"){
     $addmail=$addmail.tolower()
-    $user |set-aduser -add @{proxyaddresses="smtp:$addmail"}
+    $user |set-aduser -add @{proxyaddresses="smtp:$addmail"} -ErrorVariable aderror
     $sspresult = "$sspresult Addmail $addmail;"
 }
 
 
-if ($newusername -eq "<None>"){
-    $user |set-aduser -SamAccountName $NC_SAM
-    $sspresult = "$sspresult Samaccountname changed to default $NC_SAM;"
-}
-Else{
-    if ($newusername -ne $username){
-        $user| Set-aduser -SamAccountName $newusername
-        New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Username $username changed into $newusername"
-        $sspresult = "$sspresult Username $username changed into $newusername;"
-    }
-}
 #endregion Change user account
 #region Add to group
 $functiongroups = get-adgroup -searchbase "$($adsettings.Customer.AD_functionpath)" -filter *
@@ -396,8 +410,15 @@ ForEach ($Function in $Functions){
 }
 
 #endregion Add to group
+New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "$sspresult"
+New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "END title: $procname Script"
 
-    New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "END title: $procname Script"
+if ($aderror.length -gt 0){
+    $sspresult = "Mislukt|Account $username is niet of maar gedeeltelijk aangepast $aderror"
+}
+else {
+    $sspresult = "Gereed|Account $username is aangepast"
+}
 
 #startregion ssplog
 $ssplog = "$Kworkingdir\$TDNumber.csv"

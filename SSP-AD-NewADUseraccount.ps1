@@ -93,6 +93,7 @@ param (
 )
 
 #region StandardFramework
+Start-Transcript -Path $KworkingDir\trans.txt
 Import-Module -Name OrmLogging -Prefix 'Orm' -ErrorAction SilentlyContinue -ErrorVariable ImportModuleOrmLoggingError
 if($ImportModuleOrmLoggingError)
 {
@@ -269,6 +270,7 @@ $logvar = New-Object -TypeName PSObject -Property @{
 #endregion ssplog
 
 #region Create user account
+$insertionprop = $insertion
 if ($insertion -eq "<None>"){
     $insertion = ""
 }
@@ -280,6 +282,8 @@ $companyid = $adsettings.customer.companyguid
 
 # Create vars
 $NC_Name = Convert-formatstring -tring $adsettings.customer.NC_Name
+$adcheck = get-aduser -filter {name -like "$($NC_name)*"}
+
 
 $NC_DisplayName = Convert-formatstring -tring $adsettings.customer.NC_DisplayName
 $NC_DisplayName = $NC_DisplayName.replace("  "," ")
@@ -328,8 +332,8 @@ else {
 		}
 
 	Write-Verbose -Message ("Creating new Active Directory User Account [{0}]..." -f $Properties.Name)
-	New-ADUser @Properties -PassThru -ErrorAction SilentlyContinue -ErrorVariable NewADUserError
-
+    New-ADUser @Properties -PassThru -ErrorAction SilentlyContinue -ErrorVariable NewADUserError
+    
     Start-Sleep -s 20
 
 	$secProperties = @{
@@ -339,7 +343,7 @@ else {
         'proxyAddresses' = "SMTP:$($NC_Email)"
         'mailNickname' = "$NC_SAM"
         'Extensionattribute15' = "$SspUid"
-        'Extensionattribute14' = "$insertion"
+        'Extensionattribute14' = "$insertionprop"
     }
     set-aduser -identity $nc_sam -add $secProperties
 
@@ -354,11 +358,11 @@ $ct = [System.DirectoryServices.AccountManagement.ContextType]::Domain
 $pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext $ct,$Domain
 If ($pc.ValidateCredentials($NC_SAM,$passwd) -eq $true) {
     New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Authentication successfully"
-    $sspresult = "Succes: User is verified"
+    $sspresult = "Gereed|$NC_SAM is aangemaakt"
     }
 else {
     New-OrmLog -logvar $logvar -status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message "Authentication not successful"
-    $sspresult = "Failed: User could not be verified"
+    $sspresult = "Mislukt|$NC_SAM is niet volledig aangemaakt. $newadusererror"
 }
 
 #endregion Test user login
@@ -388,7 +392,7 @@ $ssplogvar = New-Object -TypeName PSObject -Property @{
 'last_changed'= get-date (get-aduser $nc_sam -prop whenchanged|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
-
+Stop-Transcript
 #endregion ssplog
 
 #endregion Execution

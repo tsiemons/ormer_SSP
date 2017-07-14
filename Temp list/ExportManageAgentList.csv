@@ -1,0 +1,60 @@
+id, online, machine id, os version, contact notes, agentguid
+656940366095081,1,actrion01.srv.actrion,Server Standard x64 Edition  Build 9200,,656940366095081
+241083180184047,1,appm01.srv.appm,R2 Server Standard x64 Edition Service Pack 1 Build 7601,"DC, IIS, DNS, Exchange",241083180184047
+828125056720177,1,bandre01.srv.bandre,Server Standard x64 Edition  Build 9200,,828125056720177
+843093214349202,1,bck-dc-01.srv.outsourcing.ormer,Server Standard x64 Edition  Build 9200,Back-up domain: Domain Controller,843093214349202
+421679626210258,1,beren01.srv.beren,R2 Server Standard x64 Edition Service Pack 1 Build 7601,DC; Exchange,421679626210258
+658513121864178,1,bhei-dc-01.srv.heilijgers,Server Datacenter x64 Edition  Build 14393,,658513121864178
+981867456556020,1,blok-dc-01.srv.blok,R2 Server Datacenter x64 Edition  Build 9600,"DC, ADFS",981867456556020
+856878075816042,12,bs-dc-01.srv.sanders,R2 Server Standard x64 Edition  Build 9600,"Infra: DC, DNS, DHCP, File, Printer",856878075816042
+937434205072255,11,cap-ams-dc.srv.capi,R2 Server Datacenter x64 Edition Service Pack 1 Build 7601,,937434205072255
+529143229665291,1,cap-arn-dc.srv.capi,R2 Server Standard x64 Edition Service Pack 1 Build 7601,"DC, DNS, DHCP locatie: ",529143229665291
+680267697301530,1,cap-cop-dc.srv.capi,R2 Server Standard x64 Edition Service Pack 1 Build 7601,"Infra: DC, DNS, DHCP, Locatie:",680267697301530
+554476644696326,1,cap-dc.srv.capi,R2 Server Datacenter x64 Edition Service Pack 1 Build 7601,"Infra: DC, DNS, Exchange, DHCP",554476644696326
+600289932278460,1,cap-dc02.srv.capi,R2 Server Standard x64 Edition Service Pack 1 Build 7601,"Infra: DC, DNS",600289932278460
+715672885029643,1,cap-fra-dc.srv.capi,R2 Server Standard x64 Edition Service Pack 1 Build 7601,"Infra: DC, DNS, DHCP, Locatie:",715672885029643
+651998839693035,1,cap-got-dc.srv.capi,R2 Server Standard x64 Edition Service Pack 1 Build 7601,"Infra: DC, DNS, DHCP, Locatie:",651998839693035
+420496041212445,12,cap-mun-dc.srv.capi,R2 Server Standard x64 Edition Service Pack 1 Build 7601,"Infra: DC, DNS, DHCP, Locatie:",420496041212445
+780058204787848,1,cap-sa-dc.srv.capi,R2 Server Standard x64 Edition Service Pack 1 Build 7601,"Infra: DC, DNS, DHCP, Locatie:",780058204787848
+724790729747400,1,cc01.srv.combicredit,R2 Server Standard x64 Edition  Build 9600,,724790729747400
+845727090023222,1,cct-dc-01.srv.cct,Server Datacenter x64 Edition  Build 14393,"Active Directory, DNS, AAD Connect, ADFS",845727090023222
+483542102730448,1,cct-dc-02.srv.cct,Server Datacenter x64 Edition  Build 14393,"Active Directory, DNS",483542102730448
+835296382049623,1,cjg-dc-01.srv.cjg,R2 Server Standard x64 Edition  Build 9600,Infraserver: Domain Controller,835296382049623
+707868321839736,1,cjg-dc-02.srv.cjg,R2 Server Standard x64 Edition  Build 9600,Infraserver: Domain Controller,707868321839736
+318348849994565,1,dc01.srv.intrasurance,R2 Server Standard x64 Edition  Build 9600,DC,318348849994565
+483712870949909,0,dikk-dc-01.srv.dikkerboom,Server Datacenter x64 Edition  Build 14393,,483712870949909
+903141162438702,1,dikkerboom06.srv.dikkerboom,Server Standard x64 Edition Service Pack 1 Build 6001,"DC, Print",903141162438702
+400420846029376,12,dudo-dc-01.srv.dudok,R2 Server Datacenter x64 Edition  Build 9600,"DC, DNS, FS, Print",400420846029376
+880869447441484,0,dudok09.srv.dudok,R2 Server Standard x64 Edition Service Pack 1 Build 7601,,880869447441484
+597357301901804,1,duif.srv.sanders,Server R2 Standard x64 Edition Service Pack 2 Build 3790,"Infra: DC, DNS, Exchange 2007",597357301901804
+362435244857480,12,fnd-dc-01.srv.feyenoord,R2 Server Standard x64 Edition  Build 9600,Infraserver: Domain Controller (Fysiek),362435244857480
+905243801688511,12,fnd-dc-02.srv.feyenoord,R2 Server Standard x64 Edition  Build 9600,"DC, DHCP",905243801688511
+756929081270080,1,gola-dc-01.srv.golazo,R2 Server Datacenter x64 Edition  Build 9600,,756929081270080
+488388510488332,1,hamelink01.srv.hamelink,R2 Server Standard x64 Edition Service Pack 1 Build 7601,DC,488388510488332
+686535902643893,1,hamelink02.srv.hamelink,R2 Server Standard x64 Edition Service Pack 1 Build 7601,"DC, File , Exchange",686535902643893
+721326758566295,1,hend-dc-01.srv.hendra,R2 Server Datacenter x64 Edition  Build 9600,"AD DS, AD FS, DNS, File and Storage Services",721326758566295
+326405395589018,12,hou-dc-01.srv.houdijk,R2 Server Standard x64 Edition  Build 9600,"DC, DHCP, DNS",326405395589018
+723481779379084,1,houdijk06.srv.houdijk,R2 Server Standard x64 Edition Service Pack 1 Build 7601,"DC, DNS, Fileserver",723481779379084
+388100369854444,1,houdijk16.srv.houdijk,R2 Server Standard x64 Edition Service Pack 1 Build 7601,DC,388100369854444
+965210377934407,1,hpv-dc-01.srv.outsourcing.ormer,Server Standard x64 Edition  Build 9200,Hosting omgeving: Domain Controller,965210377934407
+593436708949076,1,hpv-dc-02.srv.outsourcing.ormer,Server Standard x64 Edition  Build 9200,Hosting omgeving: Domain Controller,593436708949076
+340768062598354,12,inrada16.srv.inrada,R2 Server Datacenter x64 Edition Service Pack 1 Build 7601,"File, DC, DHCP, DNS",340768062598354
+429423880669543,1,inrada17.srv.inrada,R2 Server Datacenter x64 Edition Service Pack 1 Build 7601,"DC, DNS",429423880669543
+375339538974122,11,intr-dc-01.srv.intrasurance,R2 Server Datacenter x64 Edition  Build 9600,"Azure DC, Files",375339538974122
+592056330786398,11,intr-dc-02.srv.intrasurance,R2 Server Standard x64 Edition  Build 9600,"DC, Print",592056330786398
+235376639188368,1,kh14.srv.kh,R2 Server Standard x64 Edition  Build 9600,"DC, DHCP, DNS, FTP, Web , File, DFS Namespace",235376639188368
+397273086954900,1,luxor01.srv.luxor,Server Standard x64 Edition  Build 9200,"DC, Print",397273086954900
+204522576228938,1,luxor05.srv.luxor,Server Standard x64 Edition  Build 9200,DC,204522576228938
+472467061835857,1,nl-mdk02a-dc01.srv.cct,Server Standard x64 Edition Service Pack 2 Build 6002,,472467061835857
+998050146974454,12,nl-mdk02a-fs01.srv.cct,Server Standard Edition Service Pack 2 Build 6002,,998050146974454
+135750290021306,1,orme-dc-01.srv.orme,R2 Server Datacenter x64 Edition  Build 9600,,135750290021306
+105121982714258,1,ormer84.srv.outsourcing.ormer,Server Standard x64 Edition  Build 9200,Ormer: Domain Controller,105121982714258
+928263745140587,1,ormer88.srv.outsourcing.ormer,R2 Server Standard x64 Edition  Build 9600,Ormer: Domain Controller,928263745140587
+492617455835204,1,rog-dc-01.srv.rogplus,R2 Server Standard x64 Edition  Build 9600,DC,492617455835204
+342816324552018,1,rogplus09.srv.rogplus,R2 Server Standard x64 Edition Service Pack 1 Build 7601,DC/Fileserver,342816324552018
+800709001963758,1,srb95dc1.srv.metterwoon,R2 Server Standard x64 Edition  Build 9600,,800709001963758
+268722765594514,1,srbdc1.srv.metterwoon,R2 Server Standard x64 Edition  Build 9600,,268722765594514
+511631223343494,1,srddc1.srv.metterwoon,R2 Server Standard x64 Edition  Build 9600,,511631223343494
+726038112321913,1,srrdc1.srv.metterwoon,R2 Server Standard x64 Edition  Build 9600,,726038112321913
+759058699193201,11,tele-dc-01.root.telecontrol_srv,Server Datacenter x64 Edition  Build 14393,,759058699193201
+465105615968558,1,vink.srv.sanders,Server R2 Standard x64 Edition Service Pack 2 Build 3790,"Infra: DC, DNS, Webshop",465105615968558

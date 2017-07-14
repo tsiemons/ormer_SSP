@@ -167,9 +167,15 @@ if ($Server2008)
 
 #region Unlock Account
 
-    New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Enable user account: `'$($Username)`'" -ErrorAction Stop
-    Enable-ADAccount -Identity $Username
-    $sspresult = "Success: User is enabled"
+New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Enable user account: `'$($Username)`'" -ErrorAction Stop
+Enable-ADAccount -Identity $Username -ErrorVariable aderror
+if ($aderror -gt 0){
+    $sspresult = "Gereed|$username is actief"
+}
+Catch{
+    $sspresult = "Mislukt|$username is niet actief $aderror"
+}
+
 #endregion Unlock Account
 [XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
 $companyid = $adsettings.customer.companyguid
