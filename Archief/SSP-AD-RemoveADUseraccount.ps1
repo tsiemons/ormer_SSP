@@ -173,6 +173,9 @@ else
 
 #endregion Import Module Active Directory
 
+foreach ($in in $group){
+    
+}
 #region functions
 
 Function New-RandomComplexPassword
@@ -232,21 +235,28 @@ param (
 
 #endregion functions
 
-#region Create user account
+#region Remove user account
 
 # Import XML
 [XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
+$companyid = $adsettings.customer.companyguid
 
 
 #set additional proprties
 if ($username.length -gt 15){
     $username = (get-aduser -filter {extensionattribute15 -like $username}).samaccountname
 }
+$sspUid="$(get-aduser $UserName -prop extensionattribute15 -erroraction SilentlyContinue |Select-Object -ExpandProperty extensionattribute15)"
+$whenchanged = get-date (get-aduser $username -prop whenchanged -ErrorAction SilentlyContinue|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 
-Disable-adaccount $username 
-Get-adobject $username |move-adobject "OU=ToBeRemoved,$($adsettings.Customer.AD_userpath)"
-set-aduser $username -description "Removed by SSP on $(get-date)"
-$sspresult = "set to remove user $username"
+    Get-ADUser $username | remove-aduser -confirm:$false -ErrorVariable aderror
+    if ($aderror.length -gt 0){
+        $sspresult = "Mislukt| $username niet verwijderd $aderror"
+    }
+    Else{
+        $sspresult = "Gereed| $username verwijderd"
+    }
+    
 
 #region Add to group
 
@@ -258,12 +268,12 @@ $ssplog = "$Kworkingdir\$TDNumber.csv"
 $ssplogvar = New-Object -TypeName PSObject -Property @{
 'logID'=([guid]::NewGuid()).guid
 'youweID'=$TDNumber
-'sspUid'=$(get-aduser $username -prop extensionattribute15 |select -ExpandProperty extensionattribute15)
-'action'= $myinvocation.mycommand.Name
+'sspUid'=$sspuid
+'action'= "Gebruiker verwijderen"
 'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
-'companyID'= $Kaseyagroup
-'last_changed'= (get-aduser $username -prop whenchanged|select-object -expand whenchanged)
+'companyID'= $Companyid
+'last_changed'= $whenchanged
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
 

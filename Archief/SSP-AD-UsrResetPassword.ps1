@@ -49,11 +49,12 @@ param (
     [string]$KworkingDir,
 
     # Procedure vars
+	[Parameter(Mandatory = $true)]
+	[String]$KaseyaGroup,
     [Parameter(Mandatory=$true)]
-    [String] $Passwd,
-
-    [Parameter(Mandatory=$true)]
-    [String] $UserName
+	[String]$Username,
+	[Parameter(Mandatory = $true)]
+	[String]$Password
 )
 
 #region StandardFramework
@@ -218,19 +219,19 @@ Function New-RandomComplexPassword
 New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Reset user password"
 try
 {
-    Set-ADAccountPassword -identity $UserName -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $passwd -Force) -ErrorAction SilentlyContinue -ErrorVariable setadacccountpassworderror
+    Set-ADAccountPassword -identity $UserName -Reset -NewPassword (ConvertTo-SecureString -AsPlainText $Password -Force) -ErrorAction SilentlyContinue -ErrorVariable setadacccountpassworderror
 }
 catch
 {
     $setadacccountpassworderror = $_.Exception
 }
+
 if ($setadacccountpassworderror)
 {
     New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message "Error occured setting the AD password"
     New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message $setadacccountpassworderror.Message
     New-OrmLog -logvar $logvar -Status 'Failure' -LogDir $KworkingDir -ErrorAction Stop -Message "END title: $procname Script"
-    $sspresult = "Set password failed"
-
+    $aderror += $setadacccountpassworderror
     Break
 }
 else
@@ -238,6 +239,7 @@ else
     New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "New AD User PassWord is set"
     $sspresult = "Set password succeeded"
 }
+
 try {
     Set-ADuser -identity $UserName -PasswordNeverExpires $false -ErrorAction SilentlyContinue -ErrorVariable setadusererror
 }
@@ -258,7 +260,7 @@ else
 }
 try
 {
-    Unlock-ADAccount -Identity $UserName -ErrorAction SilentlyContinue -ErrorVariable unlockadaccounterror
+    Unlock-ADAccount -Identity $UserName -ErrorAction SilentlyContinue -ErrorVariable ADerror
 }
 catch
 {
@@ -299,7 +301,7 @@ else
     {
         New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Authentication successfully"
         try {
-            Set-ADuser -Identity $UserName -ChangePasswordAtLogon $true -ErrorAction SilentlyContinue -ErrorVariable ChangePwdAtLogonError
+            Set-ADuser -Identity $UserName -ChangePasswordAtLogon $true -ErrorAction SilentlyContinue -ErrorVariable ADError
             New-OrmLog -logvar $logvar -Status 'Success' -LogDir $KworkingDir -ErrorAction Stop -Message "Successfully set Change PassWord At Next logon"
         }
         catch
@@ -323,19 +325,27 @@ else
     
 
 #endregion Test user login
+if ($aderror.length -gt 0){
+    $sspresult = "Mislukt|$username wachtwoord verandering is niet gelukt $aderror"
+}
+Else{
+    $sspresult = "Gereed|$username heeft een nieuw wachtwoord"
+}
 
 New-OrmLog -logvar $logvar -Status 'Success' -LogDir $KworkingDir -ErrorAction Stop -Message "END title: $procname Script"
+[XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
+$companyid = $adsettings.customer.companyguid
 
 $ssplog = "$Kworkingdir\$TDNumber.csv"
 $ssplogvar = New-Object -TypeName PSObject -Property @{
 'logID'=([guid]::NewGuid()).guid
 'youweID'=$TDNumber
-'sspUid'=$(get-aduser $username -prop extensionattribute15 |Select-Object -ExpandProperty extensionattribute15)
-'action'= $myinvocation.mycommand.Name
+'sspUid'=$(get-aduser $UserName -prop extensionattribute15 -erroraction SilentlyContinue |Select-Object -ExpandProperty extensionattribute15)
+'action'= "Gebruiker Wachtwoord herstellen"
 'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
-'companyID'= $Kaseyagroup
-'last_changed'= (get-aduser $nc_sam -prop whenchanged|select-object -expand whenchanged)
+'companyID'= $Companyid
+'last_changed'= get-date (get-aduser $username -prop whenchanged -ErrorAction SilentlyContinue|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
 #endregion Execution

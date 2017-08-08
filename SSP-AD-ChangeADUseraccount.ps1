@@ -282,7 +282,7 @@ else{
 [XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
 #generate vars
 $companyid = $adsettings.customer.companyguid
-if (($surname -ne $user.surname) -or ($insertion -eq "<none>") -or ($insertion -ne $user.extensionattribute14) -or ($givenname -ne $user.GivenName)){
+if (($surname -ne $user.surname) -or ($insertion -eq "<none>") -or ($insertion -ne $user.extensionattribute14) -or ($givenname -ne $user.GivenName) -or ($newusername -ne $user.samaccountname)){
     if ($insertion -eq "<none>"){
         $insertion = ""
         $user |set-aduser -clear extensionattribute14 -ErrorVariable Aderror
@@ -426,7 +426,7 @@ $ssplogvar = New-Object -TypeName PSObject -Property @{
 'logID'=([guid]::NewGuid()).guid
 'youweID'=$TDNumber
 'sspUid'=$(get-aduser $UserName -prop extensionattribute15 -erroraction SilentlyContinue |Select-Object -ExpandProperty extensionattribute15)
-'action'= "Bewerken gebruiker"
+'action'= "Account aanpassing"
 'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
 'companyID'= $Companyid

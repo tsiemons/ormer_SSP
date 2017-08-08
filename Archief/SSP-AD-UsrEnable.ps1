@@ -35,11 +35,14 @@ param (
     [string]$TDNumber,
 
     [parameter(mandatory=$true)]
-    [string]$KworkingDir,
-
-    # Procedure vars
-    [Parameter(Mandatory=$false)]
-    [String] $UserName
+	[string]$KworkingDir,
+	
+	# Procedure vars
+	[Parameter(Mandatory = $true)]
+	[String]$KaseyaGroup,
+	
+	[Parameter(Mandatory = $true)]
+	[String]$Username
 )
 
 #region StandardFramework
@@ -147,39 +150,47 @@ if ($Server2008)
 
 #region Check if user is disabled
 
-    if ($username.length -gt 15){
-        $username = (get-aduser -filter {extensionattribute15 -like $username}).samaccountname
+    if ($Username.length -gt 15){
+        $Username = (get-aduser -filter {extensionattribute15 -like $Username}).samaccountname
     }
 
-    $UserEnabled = (Get-ADUser -Identity $UserName).Enabled
+    $UserEnabled = (Get-ADUser -Identity $Username).Enabled
     If ($UserEnabled -eq $false) {
         New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "User is disabled" -ErrorAction Stop
         $sspresult = "Failed: User is disabled"
         }
     else {
-        New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "User is enabled: `'$($UserName)`'" -ErrorAction Stop
+        New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "User is enabled: `'$($Username)`'" -ErrorAction Stop
         }
 
 #endregion Check if user is disabled
 
 #region Unlock Account
 
-    New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Enable user account: `'$($UserName)`'" -ErrorAction Stop
-    Enable-ADAccount -Identity $UserName
-    $sspresult = "Success: User is enabled"
+New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Enable user account: `'$($Username)`'" -ErrorAction Stop
+Enable-ADAccount -Identity $Username -ErrorVariable aderror
+if ($aderror -gt 0){
+    $sspresult = "Gereed|$username is actief"
+}
+Catch{
+    $sspresult = "Mislukt|$username is niet actief $aderror"
+}
+
 #endregion Unlock Account
+[XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
+$companyid = $adsettings.customer.companyguid
 
 New-OrmLog -logvar $logvar -status 'Success' -LogDir $KworkingDir -Message "END title: $procname Script" -ErrorAction Stop
 $ssplog = "$Kworkingdir\$TDNumber.csv"
 $ssplogvar = New-Object -TypeName PSObject -Property @{
 'logID'=([guid]::NewGuid()).guid
 'youweID'=$TDNumber
-'sspUid'=$(get-aduser $username -prop extensionattribute15 |select -ExpandProperty extensionattribute15)
-'action'= $myinvocation.mycommand.Name
+'sspUid'=$(get-aduser $UserName -prop extensionattribute15 -erroraction SilentlyContinue |Select-Object -ExpandProperty extensionattribute15)
+'action'= "Gebruiker Activeren"
 'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
-'companyID'= $Kaseyagroup
-'last_changed'= (get-aduser $nc_sam -prop whenchanged|select-object -expand whenchanged)
+'companyID'= $Companyid
+'last_changed'= get-date (get-aduser $username -prop whenchanged -ErrorAction SilentlyContinue|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
 n

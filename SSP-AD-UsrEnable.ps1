@@ -169,10 +169,10 @@ if ($Server2008)
 
 New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Enable user account: `'$($Username)`'" -ErrorAction Stop
 Enable-ADAccount -Identity $Username -ErrorVariable aderror
-if ($aderror -gt 0){
+if ($aderror.length -gt 0){
     $sspresult = "Gereed|$username is actief"
 }
-Catch{
+Else{
     $sspresult = "Mislukt|$username is niet actief $aderror"
 }
 
@@ -186,11 +186,10 @@ $ssplogvar = New-Object -TypeName PSObject -Property @{
 'logID'=([guid]::NewGuid()).guid
 'youweID'=$TDNumber
 'sspUid'=$(get-aduser $UserName -prop extensionattribute15 -erroraction SilentlyContinue |Select-Object -ExpandProperty extensionattribute15)
-'action'= "Gebruiker Activeren"
+'action'= "Account activatie"
 'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
 'companyID'= $Companyid
 'last_changed'= get-date (get-aduser $username -prop whenchanged -ErrorAction SilentlyContinue|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
-n

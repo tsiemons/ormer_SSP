@@ -40,10 +40,13 @@ param (
 
     [parameter(mandatory=$true)]
     [string]$KworkingDir,
-
-    # Procedure vars
-    [Parameter(Mandatory=$false)]
-    [String] $UserName
+	
+	# Procedure vars
+	[Parameter(Mandatory = $true)]
+	[String]$KaseyaGroup,
+	
+    [Parameter(Mandatory=$true)]
+    [String] $Username
 )
 
 #region StandardFramework
@@ -144,14 +147,24 @@ if ($Server2008)
 #endregion Import Module Active Directory
 
 
-if ($username.length -gt 15){
-    $username = (get-aduser -filter {extensionattribute15 -like $username}).samaccountname
+if ($Username.length -gt 15){
+    $Username = (get-aduser -filter {extensionattribute15 -like $Username}).samaccountname
 }
 
 #region Disable Account
-    New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Disable user account: `'$($UserName)`'" -ErrorAction Stop
-    Disable-ADAccount -Identity $UserName
+    New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Disable user account: `'$($Username)`'" -ErrorAction Stop
+    
+    Disable-ADAccount -Identity $Username -ErrorVariable aderror
+    if ($aderror -gt 0){
+        $sspresult = "Gereed|$username is geblokkeerd"
+    }
+    Catch{
+        $sspresult = "Mislukt|$username is niet geblokkeerd $aderror"
+    }
+
 #endregion Disable Account
+[XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
+$companyid = $adsettings.customer.companyguid
 
 #region end log
         New-OrmLog -logvar $logvar -status 'Success' -LogDir $KworkingDir -Message "END Title: $($Procname) Script" -ErrorAction Stop
@@ -159,12 +172,12 @@ $ssplog = "$Kworkingdir\$TDNumber.csv"
 $ssplogvar = New-Object -TypeName PSObject -Property @{
 'logID'=([guid]::NewGuid()).guid
 'youweID'=$TDNumber
-'sspUid'=$(get-aduser $username -prop extensionattribute15 |select -ExpandProperty extensionattribute15)
-'action'= $myinvocation.mycommand.Name
+'sspUid'=$(get-aduser $UserName -prop extensionattribute15 -erroraction SilentlyContinue |Select-Object -ExpandProperty extensionattribute15)
+'action'= "Gebruiker blokkeren"
 'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
 'result'= $sspresult
-'companyID'= $Kaseyagroup
-'last_changed'= (get-aduser $nc_sam -prop whenchanged|select-object -expand whenchanged)
+'companyID'= $Companyid
+'last_changed'= get-date (get-aduser $username -prop whenchanged -ErrorAction SilentlyContinue|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 }
 $ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
 
