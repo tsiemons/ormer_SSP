@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Customer>
 <companyguid>ab2ad9263449f61ff024785a6b80c0b42ceafaed695936b63c1c6da6b145e213</companyguid>
-<AD_userpath>OU=Users,OU=ROGPlus,DC=rogplus,DC=local</AD_userpath>
+<AD_userpath>OU=Users,OU=Inrada Group,DC=INRADANET,DC=lan</AD_userpath>
 <AD_functionpath></AD_functionpath>
 <NC_Displayname>%G %I %S</NC_Displayname>
 <NC_Distrgroup></NC_Distrgroup>

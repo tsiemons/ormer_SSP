@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Customer>
 <companyguid>5f47d46520c51384d8f5cd87d036e7db956033e97e70df09aa538241b9dd7e31</companyguid>
-<AD_userpath>OU=Users,OU=ROGPlus,DC=rogplus,DC=local</AD_userpath>
+<AD_userpath>OU=Users,OU=Intrasurance,DC=INTRASURANCE,DC=int</AD_userpath>
 <AD_functionpath></AD_functionpath>
 <NC_Displayname>%G %I %S</NC_Displayname>
 <NC_Distrgroup></NC_Distrgroup>

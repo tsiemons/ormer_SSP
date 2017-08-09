@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Customer>
 <companyguid>779e204330bf95e1432f79c21d163e3e393b356c36eca52e41c387825e30df0e</companyguid>
-<AD_userpath>OU=Users,OU=Telecontrol,DC=telecontrol,DC=local</AD_userpath>
+<AD_userpath>Pay for People,OU=Users,OU=Payforpeople,DC=payforpeople,DC=local</AD_userpath>
 <AD_functionpath></AD_functionpath>
 <NC_Displayname>%G %I %S</NC_Displayname>
 <NC_Distrgroup></NC_Distrgroup>
 <NC_Email>%G1.%S</NC_Email>
-<NC_Name>%G1%S</NC_Name>
+<NC_Name>%G %I %S</NC_Name>
 <NC_SAM>%G1%S</NC_SAM>
 <NC_UPN>%G1.%S</NC_UPN>
 <NC_IN>.</NC_IN>
