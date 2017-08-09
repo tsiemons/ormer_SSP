@@ -12,15 +12,5 @@
 <NC_IN>.</NC_IN>
 <SMTPDomain>telecontrol.ormer.nl</SMTPDomain>
 <Profiles>1,2,3</Profiles>
-<Departments>
-    <Department>
-        <name>Crack IT</name>
-        <SMTPDomain>crackit.ormer.nl</SMTPDomain>
-   </Department>
-   <Department>
-      <name>Trend IT</name>
-      <SMTPDomain>trendit.ormer.nl</SMTPDomain>
-   </Department>
-</Departments>
 <InfraType>O365</InfraType>
 </Customer>

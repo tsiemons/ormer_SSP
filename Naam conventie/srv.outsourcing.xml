@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Customer>
 <companyguid>0787b17038c49526bb0e2b51e713e8283fb70607d66eabed516f3891afdb1e08</companyguid>
-<AD_userpath>OU=Users,OU=ROGPlus,DC=rogplus,DC=local</AD_userpath>
+<AD_userpath>OU=Users,OU=Bedrijf,DC=ormer,DC=local</AD_userpath>
 <AD_functionpath></AD_functionpath>
 <NC_Displayname>%G %I %S</NC_Displayname>
 <NC_Distrgroup></NC_Distrgroup>
@@ -10,7 +10,7 @@
 <NC_SAM>%G1%S</NC_SAM>
 <NC_UPN>%G1%S</NC_UPN>
 <NC_IN>.</NC_IN>
-<SMTPDomain>rogplus.nl</SMTPDomain>
+<SMTPDomain>ormer.nl.nl</SMTPDomain>
 <Profiles>1,2,3</Profiles>
 <Departments>
  </Departments>
