@@ -260,6 +260,8 @@ param (
 #endregion functions
 
 #region Change user account
+
+
 $user = $false
 if ($username.length -gt 15){
     $user = get-aduser -filter { extensionattribute15 -like $username } -Properties extensionattribute14, extensionattribute15, proxyaddresses
@@ -268,6 +270,7 @@ if ($username.length -gt 15){
 Else {
     $user = get-aduser $username -Properties extensionattribute14,extensionattribute15,proxyaddresses
 }
+
 
 if ($user){
     New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "$username found"
@@ -282,6 +285,10 @@ else{
 [XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
 #generate vars
 $companyid = $adsettings.customer.companyguid
+
+if ((Convert-formatstring -tring $adsettings.customer.NC_sam) -ne $($user.samaccountname)){$changesam = $false}
+Else {$changesam = $true}
+
 if (($surname -ne $user.surname) -or ($insertion -eq "<none>") -or ($insertion -ne $user.extensionattribute14) -or ($givenname -ne $user.GivenName) -or ($newusername -ne $user.samaccountname)){
     if ($insertion -eq "<none>"){
         $insertion = ""
@@ -309,24 +316,25 @@ if (($surname -ne $user.surname) -or ($insertion -eq "<none>") -or ($insertion -
         $sspresult = "$sspresult Given name $($user.surname) changed into $surname;"
     }
 
-    if ($newusername -ne $user.samaccountname){
-        if ($newusername -eq "<none>" ){
-            $NC_SAM = Convert-formatstring -tring $adsettings.customer.NC_sam
-            $username = $NC_SAM
-            $user |set-aduser -SamAccountName $NC_SAM -ErrorVariable aderror
-            $user = get-aduser $NC_SAM -Properties extensionattribute14,extensionattribute15,proxyaddresses -ErrorVariable aderror
-            New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "login $($user.samaccountname) changed into $NC_SAM"
-            $sspresult = "$sspresult login $($user.samaccountname) changed into $newusername;"
-        }
-        Else{
-            $user |set-aduser -SamAccountName $newusername
-            $user = get-aduser $newusername -Properties extensionattribute14,extensionattribute15,proxyaddresses -ErrorVariable aderror
-            $username = $newusername
-            New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "login $($user.samaccountname) changed into $newusername"
-            $sspresult = "$sspresult login $($user.samaccountname) changed into $newusername;"
+    if ($changesam){
+        if ($newusername -ne $user.samaccountname){
+            if ($newusername -eq "<none>" ){
+                $NC_SAM = Convert-formatstring -tring $adsettings.customer.NC_sam
+                $username = $NC_SAM
+                $user |set-aduser -SamAccountName $NC_SAM -ErrorVariable aderror
+                $user = get-aduser $NC_SAM -Properties extensionattribute14,extensionattribute15,proxyaddresses -ErrorVariable aderror
+                New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "login $($user.samaccountname) changed into $NC_SAM"
+                $sspresult = "$sspresult login $($user.samaccountname) changed into $newusername;"
+            }
+            Else{
+                $user |set-aduser -SamAccountName $newusername
+                $user = get-aduser $newusername -Properties extensionattribute14,extensionattribute15,proxyaddresses -ErrorVariable aderror
+                $username = $newusername
+                New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "login $($user.samaccountname) changed into $newusername"
+                $sspresult = "$sspresult login $($user.samaccountname) changed into $newusername;"
+            }
         }
     }
-
     $NC_DisplayName = Convert-formatstring -tring $adsettings.customer.NC_DisplayName
     $NC_DisplayName = $NC_DisplayName.replace("  "," ")
     $user |set-aduser -DisplayName $NC_DisplayName -ErrorVariable aderror
@@ -343,7 +351,8 @@ if (($surname -ne $user.surname) -or ($insertion -eq "<none>") -or ($insertion -
     }
 }
 
-
+$newname = Convert-formatstring -tring $adsettings.customer.nc_name
+if ($($user.name) -ne $newname){rename-adobject $user.distinguishedname -newname $newname }
 if ($department -eq "<None>"){
     $NC_path = "$($adsettings.Customer.AD_userpath)"
     move-adobject -identity $user.distinguishedname -Targetpath "$($adsettings.Customer.AD_userpath)" -confirm:$false -ErrorVariable aderror
@@ -400,8 +409,8 @@ if ($addmail -like "*@*"){
 
 
 #endregion Change user account
-#region Add to group
-$functiongroups = get-adgroup -searchbase "$($adsettings.Customer.AD_functionpath)" -filter *
+#region Add to groups
+$functiongroups = get-adgroup -filter {description -like "SSP|*"}
 Foreach ($functiongroup in $functiongroups){
     $functiongroup |remove-adgroupmember -members $user.sid -confirm:$false
 }
