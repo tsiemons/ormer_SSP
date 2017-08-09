@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Customer>
 <companyguid>5782de21eb6af46dc72ff4bb0d8915cd392ce5f70b7ce2ac536a78c66bfa9468</companyguid>
-<AD_userpath>OU=GOLAZO,DC=GOLAZO,DC=local</AD_userpath>
+<AD_userpath>OU=Users,OU=Hamelink,DC=hamelink,DC=local</AD_userpath>
 <AD_functionpath></AD_functionpath>
 <NC_Displayname>%G %I %S</NC_Displayname>
 <NC_Distrgroup></NC_Distrgroup>
