@@ -48,346 +48,274 @@ https://technet.microsoft.com/en-us/library/ee617253.aspx
 
 [cmdletbinding()]
 param (
-	[parameter(mandatory = $false)]
-	[string]$Operator,
-	[parameter(mandatory = $false)]
-	[string]$MachineGroup,
-	[parameter(mandatory = $false)]
-	[string]$TDNumber,
-	[parameter(mandatory = $true)]
-	[string]$KworkingDir,
-	# Procedure vars
+    [parameter(mandatory=$false)]
+    [string]$Operator,
 
-	[Parameter(Mandatory = $false)]
-	[String]$UserName,
-	[Parameter(Mandatory = $true)]
-	[String]$SurName,
-	[Parameter(Mandatory = $false)]
-	[String]$insertion,
-	[Parameter(Mandatory = $true)]
-	[String]$GivenName,
-	[Parameter(Mandatory = $false)]
-	[String]$Mail,
-	[Parameter(Mandatory = $false)]
-	[String]$Functions,
-	[Parameter(Mandatory = $true)]
-	[String]$SspUid,
-	[Parameter(Mandatory = $true)]
-	[String]$passwd,
-	[Parameter(Mandatory = $true)]
-	[String]$Kaseyagroup,
-	[Parameter(Mandatory = $false)]
-	[String]$Department
+    [parameter(mandatory=$false)]
+    [string]$MachineGroup,
+
+    [parameter(mandatory=$false)]
+    [string]$TDNumber,
+
+    [parameter(mandatory=$true)]
+    [string]$KworkingDir,
+
+    # Procedure vars
+    [Parameter(Mandatory=$false)]
+    [String] $UserName,
+
+    [Parameter(Mandatory=$true)]
+    [String] $SurName,
+
+    [Parameter(Mandatory=$false)]
+    [String] $insertion,
+
+    [Parameter(Mandatory=$true)]
+    [String] $GivenName,
+
+    [Parameter(Mandatory=$false)]
+    [String] $Mail,
+	
+	[Parameter(Mandatory=$false)]
+    [String] $Functions,
+
+	[Parameter(Mandatory=$true)]
+    [String] $SspUid,
+
+	[Parameter(Mandatory=$true)]
+    [String] $passwd,
+
+	[Parameter(Mandatory=$true)]
+    [String] $Kaseyagroup,
+
+	[Parameter(Mandatory=$false)]
+    [String] $Department
 )
 
 #region StandardFramework
 Start-Transcript -Path $KworkingDir\trans.txt
 Import-Module -Name OrmLogging -Prefix 'Orm' -ErrorAction SilentlyContinue -ErrorVariable ImportModuleOrmLoggingError
-if ($ImportModuleOrmLoggingError)
+if($ImportModuleOrmLoggingError)
 {
-	Write-Error "Unable to import the Ormer Logging Powershell Module"
-	Write-Error "$($ImportModuleOrmLoggingError.Exception.Message)"
-	Break
+    Write-Error "Unable to import the Ormer Logging Powershell Module"
+    Write-Error "$($ImportModuleOrmLoggingError.Exception.Message)"
+    Break
 }
 Import-Module -Name OrmToolkit -Prefix 'Orm' -ErrorAction SilentlyContinue -ErrorVariable ImportModuleOrmToolkitError
-if ($ImportModuleOrmToolkitError)
+if($ImportModuleOrmToolkitError)
 {
-	Write-Error "Unable to import the Ormer Toolkit Powershell Module"
-	Write-Error "$($ImportModuleOrmToolkitError.Exception.Message)"
-	Break
+    Write-Error "Unable to import the Ormer Toolkit Powershell Module"
+    Write-Error "$($ImportModuleOrmToolkitError.Exception.Message)"
+    Break
 }
 
 Set-Location $KworkingDir -ErrorAction SilentlyContinue -ErrorVariable SetLocationError
-if ($SetLocationError)
+if($SetLocationError)
 {
-	Write-Error "Unable to set the working directory of the script"
-	Write-Error "$($SetLocationError.Exception.Message)"
-	Break
+    Write-Error "Unable to set the working directory of the script"
+    Write-Error "$($SetLocationError.Exception.Message)"
+    Break
 }
-
+    
 $Domain = $env:USERDOMAIN
 $MachineName = $env:COMPUTERNAME
 $Procname = $MyInvocation.MyCommand.Name
 $Customer = $MachineGroup.Split('.')[2]
 
+
 $logvar = New-Object -TypeName PSObject -Property @{
-	'Domain' = $Domain
-	'MachineName' = $MachineName
-	'procname' = $procname
-	'Customer' = $Customer
-	'Operator' = $Operator
-	'TDNumber' = $TDNumber
+    'Domain' = $Domain 
+    'MachineName' = $MachineName
+    'procname' = $procname
+    'Customer' = $Customer
+    'Operator'= $Operator
+    'TDNumber'= $TDNumber
 }
 
 Remove-Item "$KworkingDir\ProcedureLog.log" -Force -ErrorAction SilentlyContinue
 New-OrmLog -logvar $logvar -Status 'Start' -LogDir $KworkingDir -ErrorAction Stop -Message "Starting procedure: $($procname)"
 #endregion StandardFramework
-
-#region Functions
-Function New-RandomComplexPassword
-{
-	param ([int]$Length = 8)
-	#Usage: New-RandomComplexPassword 12
-	try
-	{
-		$Assembly = Add-Type -AssemblyName System.Web
-		$RandomComplexPassword = [System.Web.Security.Membership]::GeneratePassword($Length, 2)
-		Write-Output $RandomComplexPassword
-	}
-	catch
-	{
-		Write-Error $_
-	}
-}
-
-function Convert-Formatstring
-{
-	[CmdletBinding()]
-	param
-	(
-		[Parameter(Mandatory = $false)]
-		[string]$String
-	)
-	
-	Switch -Regex ($String)
-	{
-		"%G\d+"{
-			$n = $String | select-string -pattern "%G\d+" -AllMatches
-			$n.matches.value | foreach-object {
-				[int]$number = (select-string -input $_ -pattern "\d+").Matches.value
-				$givenname = $givenname.substring(0, [int]$number)
-				$String = $String.replace("$_", "$givenname")
-			}
-		}
-		"%G"{ $String = $String.replace("%G", "$givenname") }
-		"%S\d+"{
-			$n = $String | select-string -pattern "%S\d+" -AllMatches
-			$n.matches.value | foreach-object {
-				[int]$number = (select-string -input $_ -pattern "\d+").Matches.value
-				$surname = $surname.substring(0, [int]$number)
-				$String = $String.replace("$_", "$surname")
-			}
-		}
-		"%S"{ $String = $String.replace("%S", "$surname") }
-		"%I\d+"{
-			$n = $String | select-string -pattern "%I\d+" -AllMatches
-			$n.matches.value | foreach-object {
-				[int]$number = (select-string -input $_ -pattern "\d+").Matches.value
-				$givenname = $givenname.substring(0, [int]$number)
-				$String = $String.replace("$_", "$givenname")
-			}
-		}
-		"%I"{ $String = $String.replace("%I", "$insertion") }
-	}
-	$String
-}
-
-function Test-EmailAddress
-{
-<#
-	.SYNOPSIS
-		Tests if a specified SMTP-address exists in an Active Directory Domain.
-	
-	.DESCRIPTION
-		Tests if a specified SMTP-address exists in an Active Directory Domain. Returns a boolean value.
-	
-	.PARAMETER EmailAddress
-		The e-mailaddress to test for existance
-	
-	.NOTES
-		Additional information about the function.
-#>
-	
-	[CmdletBinding()]
-	[OutputType([bool])]
-	param
-	(
-		[Parameter(Mandatory = $true,
-				   ValueFromPipeline = $true,
-				   ValueFromPipelineByPropertyName = $true)]
-		[ValidateNotNullOrEmpty()]
-		[string]$EmailAddress
-	)
-	
-	Process
-	{
-		# Get All Mail-enabled AD Objects		
-		$MailObjects = Get-ADObject -Properties mail, proxyAddresses -Filter { (mail -like "*") -or (proxyAddresses -like "*") } -ErrorAction Stop
-		
-		# Check if the E-mailaddress exists
-		$Match = $MailObjects | Where-Object -FilterScript { $_.mail -eq $EmailAddress -or $_.proxyAddresses -match ('^(smtp:)+({0})$' -f $EmailAddress.Replace('.', '\.')) }
-		
-		if ($Match)
-		{
-			Write-Output -InputObject $true
-		}
-		else
-		{
-			Write-Output -InputObject $false
-		}
-	}
-}
-#endregion functions
-
+    
 #region Execution
 
 #region Windows Server 2008
-$Server2008 = [environment]::OSVersion | Select-Object -ExpandProperty Version | Where-Object { $_.Major -like "6" -and $_.Minor -like "0" }
+
+$Server2008 = [environment]::OSVersion | Select-Object -ExpandProperty Version | Where-Object {$_.Major -like "6" -and $_.Minor -like "0"}
 if ($Server2008)
 {
-	New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message "Windows server 2008 detected, PowerShell Modules not supported"	
-	$sspresult = "Mislukt|Server 2008 wordt niet ondersteund"
-	$ProcedureFailed = $true
+    New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message "Windows server 2008 detected, PowerShell Modules not supported"
+    New-OrmLog -logvar $logvar -Status 'Failure' -LogDir $KworkingDir -ErrorAction Stop -Message "END title: $procname Script"
+    Break
 }
+
 #endregion Windows Server 2008
 
-#region Load ActiveDirectory PowerShell Module
-if ($ProcedureFailed -ne $true)
+#region Load module Server manager
+
+New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Checking to see if the servermanager PowerShell module is installed"
+if ((get-module -name servermanager -ErrorAction SilentlyContinue | foreach { $_.Name }) -ne "servermanager")
 {
-	New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Checking if ActiveDirectory PowerShell module is installed..."
-	if ((Get-Module -Name ActiveDirectory -ListAvailable -ErrorAction SilentlyContinue) -eq $null)
-	{
-		New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message "ActiveDirectory PowerShell module is not installed."
-		$sspresult = "Mislukt|ActiveDirectory PowerShell module is niet geïnstalleerd"
-		$ProcedureFailed = $true		
-	}
-	else
-	{
-		New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "ActiveDirectory PowerShell module is installed."
-		New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Checking if ActiveDirectory PowerShell module is currently imported..."
-		if ((Get-Module -Name ActiveDirectory -ErrorAction SilentlyContinue) -eq $null)
-		{
-			New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "ActiveDirectory PowerShell module is not currently imported."
-			New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Importing ActiveDirectory PowerShell module..."
-			Import-Module ActiveDirectory -ErrorAction SilentlyContinue -ErrorVariable ImportModuleError
-			if ($ImportModuleError)
-			{
-				$sspresult = ('Mislukt|ActiveDirectory PowerShell module kon niet worden geladen vanwege de volgende fout: [{0}]' -f ($ImportModuleError[0].Exception.Message -replace "\r\n", ". "))
-				$ProcedureFailed = $true
-			}
-			else
-			{
-				New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Successfully imported ActiveDirectory PowerShell module."
-			}
-		}
-		else
-		{
-			New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "ActiveDirectory PowerShell module is currently imported."
-		}
-	}
+    New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Adding servermanager PowerShell module"
+    import-module servermanager
 }
-#endregion
+else
+{
+    New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "servermanager PowerShell module is Already loaded"
+}
+
+#endregion Load module Server manager
+
+#region Install RSAT-AD-PowerShell
+
+New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Check if RSAT-AD-PowerShell is installed"
+$RSAT = (Get-WindowsFeature -name RSAT-AD-PowerShell).Installed 
+
+if ($RSAT -eq $false)
+{
+    New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "RSAT-AD-PowerShell not found: $($RSAT)"
+    Add-WindowsFeature RSAT-AD-PowerShell
+    New-OrmLog -logvar $logvar -status 'start' -LogDir $KworkingDir -Message "Add Windows Feature RSAT-AD-PowerShell"
+    Import-module ActiveDirectory
+    New-OrmLog -logvar $logvar -status 'Start' -LogDir $KworkingDir -Message "Import module ActiveDirectory"
+}
+else
+{
+    New-OrmLog -logvar $logvar -status 'start' -LogDir $KworkingDir -Message "Windows Feature RSAT-AD-PowerShell installed"
+}
+
+#endregion Install RSAT-AD-PowerShell
+
+#region Import Module Active Directory
+
+    if ((get-module -name ActiveDirectory -ErrorAction SilentlyContinue | foreach { $_.Name }) -ne "ActiveDirectory") {
+        New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Adding ActiveDirectory PowerShell module"
+        import-module ActiveDirectory
+        }
+    else {
+        New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "ActiveDirectory PowerShell module is Already loaded"
+        }
+
+#endregion Import Module Active Directory
+
+#region functions
+
+Function New-RandomComplexPassword
+{
+    param ( [int]$Length = 8 )
+    #Usage: New-RandomComplexPassword 12
+    try {
+        $Assembly = Add-Type -AssemblyName System.Web
+        $RandomComplexPassword = [System.Web.Security.Membership]::GeneratePassword($Length,2)
+        Write-Output $RandomComplexPassword
+    }
+    catch
+    {
+        Write-Error $_
+    }
+}
+
+Function Convert-formatstring
+{
+[cmdletbinding()]
+param (
+    [parameter(mandatory=$false)]
+    [string]$tring
+)
+    Switch -Regex ($tring)
+    {
+        "%G\d+"{
+            $n=$tring |select-string -pattern "%G\d+" -AllMatches
+            $n.matches.value|foreach-object {
+            [int]$number = (select-string -input $_ -pattern "\d+").Matches.value
+            $givenname = $givenname.substring(0,[int]$number)
+            $tring=$tring.replace("$_","$givenname")
+            }
+        }
+        "%G"{$tring=$tring.replace("%G","$givenname")}
+        "%S\d+"{
+            $n=$tring |select-string -pattern "%S\d+" -AllMatches
+            $n.matches.value|foreach-object {
+            [int]$number = (select-string -input $_ -pattern "\d+").Matches.value
+            $surname = $surname.substring(0,[int]$number)
+            $tring=$tring.replace("$_","$surname")
+            }
+        }
+        "%S"{$tring=$tring.replace("%S","$surname")}
+        "%I\d+"{
+            $n=$tring |select-string -pattern "%I\d+" -AllMatches
+            $n.matches.value|foreach-object {
+            [int]$number = (select-string -input $_ -pattern "\d+").Matches.value
+            $givenname = $givenname.substring(0,[int]$number)
+            $tring=$tring.replace("$_","$givenname")
+            }
+        }
+        "%I"{$tring=$tring.replace("%I","$insertion")}
+    }
+    $tring
+}
+
+#endregion functions
+#startregion ssplog
+$ssplog = "$Kworkingdir\$TDNumber.csv"
+$logvar = New-Object -TypeName PSObject -Property @{
+    'Domain' = $Domain 
+    'MachineName' = $MachineName
+    'procname' = $procname
+    'Customer' = $Customer
+    'Operator'= $Operator
+    'TDNumber'= $TDNumber
+}
+
+
+#endregion ssplog
 
 #region Create user account
-if ($ProcedureFailed -ne $true)
-{
-	Try
-	{
-		New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Generating values for the new user account..."
-		
-		$insertionprop = $insertion
-		if ($insertion -eq "<None>")
-		{
-			$insertion = ""
-		}
-		
-		# Import XML
-		[XML]$adsettings = Get-Content -Path "$KworkingDir\$kaseyagroup.xml"
-		$companyid = $adsettings.customer.companyguid
-		#$NewPassword = New-RandomComplexPassword -Length (Get-ADDefaultDomainPasswordPolicy | Select-Object -ExpandProperty MinPasswordLength)
-		
-		# Create vars
-		$NC_Name = Convert-Formatstring -String $adsettings.customer.NC_Name		
-		
-		$NC_DisplayName = Convert-Formatstring -String $adsettings.customer.NC_DisplayName
-		$NC_DisplayName = $NC_DisplayName.replace("  ", " ")
-		
-		if ($username -eq "<None>")
-		{
-			$NC_SAM = Convert-Formatstring -String $adsettings.customer.NC_SAM
-		}
-		else
-		{
-			$NC_SAM = $username
-		}
-		
-		if ($Mail -eq "<None>")
-		{
-			$NC_Email = Convert-Formatstring -String $adsettings.customer.NC_Email
-		}
-		else
-		{
-			$NC_Email = $mail
-		}
-		
-		if ($department -eq "<None>")
-		{
-			$NC_path = "$($adsettings.Customer.AD_userpath)"
-			if ($NC_email -notlike "*@*")
-			{
-				$NC_Email = "$($NC_Email)@$($adsettings.Customer.SMTPDomain)"
-			}
-		}
-		else
-		{
-			$NC_path = "OU=$($department),$($adsettings.Customer.AD_userpath)"
-			$dep = $adsettings.customer.departments.department | Where-Object -FilterScript { name -like "$department" }
-			if ($NC_email -notlike "*@*")
-			{
-				$NC_Email = "$($NC_Email)@$($dep.SMTPDomain)"
-			}
-		}
-		# Hier moet nog via Department het juiste SMTPDomain worden gekozen	
-		New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Values for the new user account generated successfully."
-	}
-	Catch
-	{
-		New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message "Failed to generate values for the new user account."
-		$sspresult = ('Mislukt|Fout tijdens het genereren van de waardes voor het gebruikersaccount: [{0}]' -f ($_.Exception.Message -replace "\r\n", ". "))
-		$ProcedureFailed = $true
-	}
+$insertionprop = $insertion
+if ($insertion -eq "<None>"){
+    $insertion = ""
 }
 
-#region Peform Tests before creating user account
+# Import XML
+[XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
+$companyid = $adsettings.customer.companyguid
+#$NewPassword = New-RandomComplexPassword -Length (Get-ADDefaultDomainPasswordPolicy | Select-Object -ExpandProperty MinPasswordLength)
 
-# Test if AD User Account already exists
-New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message ("Testing if AD User [{0}] already exists..." -f $NC_SAM)
-if ((Get-ADUser -Filter { SamAccountName -eq $NC_SAM } -ErrorAction SilentlyContinue) -ne $null)
-{
-	New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message ("AD User [{0}] already exists." -f $NC_SAM)
-	$sspresult = ('Mislukt|Aan te maken gebruikersnaam [{0}] bestaat al' -f $NC_SAM)
-	$ProcedureFailed = $true
+# Create vars
+$NC_Name = Convert-formatstring -tring $adsettings.customer.NC_Name
+$adcheck = get-aduser -filter {name -like "$($NC_name)*"}
+
+
+$NC_DisplayName = Convert-formatstring -tring $adsettings.customer.NC_DisplayName
+$NC_DisplayName = $NC_DisplayName.replace("  "," ")
+
+if ($username -eq "<None>"){
+    $NC_SAM = Convert-formatstring -tring $adsettings.customer.NC_SAM
 }
-else
-{
-	New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message ("AD User [{0}] does not exist." -f $NC_SAM)
+else {
+    $NC_SAM = $username
 }
 
-# Test if e-mailaddress already exists
-New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message ("Testing if e-mail address [{0}] already exists..." -f $NC_Email)
-if ((Test-EmailAddress -EmailAddress $NC_Email) -eq $true)
-{
-	New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message ("E-mail address [{0}] already exists." -f $NC_Email)
-	if ($sspresult -ne $null)
-	{
-		$sspresult += (', aan te maken E-mailadres [{0}] bestaat al' -f $NC_Email)
-	}
-	else
-	{
-		$sspresult = ('Mislukt|Aan te maken E-mailadres [{0}] bestaat al' -f $NC_Email)	
-	}	
-	$ProcedureFailed = $true
+if ($Mail -eq "<None>"){
+    $NC_Email = Convert-formatstring -tring $adsettings.customer.NC_Email
 }
-else
-{
-	New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message ("E-mail address [{0}] does not exist." -f $NC_Email)
-}
-#endregion
 
-if ($ProcedureFailed -ne $true)
-{
-	Try
-	{
+else {
+    $NC_Email = $mail
+}
+
+
+if ($department -eq "<None>"){
+    $NC_path = "$($adsettings.Customer.AD_userpath)"
+    if ($NC_email -notlike "*@*"){$NC_Email = "$($NC_Email)@$($adsettings.Customer.SMTPDomain)"} 
+}
+else {
+    $NC_path = "OU=$($department),$($adsettings.Customer.AD_userpath)"
+    $dep = $adsettings.customer.departments.department |where-object name -like "$department"
+    if ($NC_email -notlike "*@*"){$NC_Email = "$($NC_Email)@$($dep.SMTPDomain)"}
+}
+# Hier moet nog via Department het juiste SMTPDomain worden gekozen
+
+
 		# Create a hashtable with the parameters used by the New-ADUser cmdlet
 		$Properties = @{
 			'Name' = $NC_Name
@@ -401,100 +329,70 @@ if ($ProcedureFailed -ne $true)
 			'Enabled' = $true
 			'ChangePasswordAtLogon' = $false
 			'Path' = $NC_Path
-			'Server' = $env:COMPUTERNAME
 		}
-		
-		New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message ("Creating new Active Directory User Account [{0}]..." -f $Properties.Name)
-		New-ADUser @Properties -PassThru -ErrorAction Stop
-		New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message ("Active Directory User Account [{0}] successfully created." -f $Properties.Name)
-		# Set additional proprties
-		$secProperties = @{
-			'msExchRecipientDisplayType' = "-2147483642"
-			'msExchRemoteRecipientType' = "3"
-			'mail' = $NC_Email
-			'proxyAddresses' = "SMTP:$($NC_Email)"
-			'mailNickname' = "$NC_SAM"
-			'Extensionattribute15' = "$SspUid"
-			'Extensionattribute14' = "$insertionprop"			
-		}
-		New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message ("Setting additional properties for Active Directory User Account [{0}]..." -f $Properties.Name)
-		Set-ADUser -Identity $nc_sam -Add $secProperties -Server $env:COMPUTERNAME -ErrorAction Stop
-		New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message ("Additional properties for Active Directory User Account [{0}] successfully set" -f $Properties.Name)
-		
-		#region Test user login
-		Start-Sleep -Seconds 20
-		Add-Type -AssemblyName System.DirectoryServices.AccountManagement
-		$ct = [System.DirectoryServices.AccountManagement.ContextType]::Domain
-		$pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext $ct, $Domain
-		If ($pc.ValidateCredentials($NC_SAM, $passwd) -eq $true)
-		{
-			New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Authentication successful"
-			$sspresult = "Gereed|$NC_SAM is aangemaakt"
-		}
-		else
-		{
-			New-OrmLog -logvar $logvar -status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message "Authentication not successful"
-			$sspresult = "Mislukt|$NC_SAM is niet volledig aangemaakt. $newadusererror"
-		}
-		
-		#endregion Test user login
-		
-		#region Add to group
-		$Employeefunctions = $functions -split ";"
-		ForEach ($employeeFunction in $EmployeeFunctions)
-		{
-			Add-ADGroupMember -identity $employeeFunction -Members $nc_sam -ErrorAction Stop
-			New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "$NC_SAM added to $employeefunction"
-		}
-		#endregion Add to group	
-	}	
-	Catch
-	{
-		New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message ("An error occured while creating new Active Directory User Account [{0}]:[{1}]" -f $Properties.Name, ($_.Exception.Message -replace "\r\n", ". "))
-		$sspresult = ('Mislukt|Fout tijdens het maken van gebruikersaccount [{0}]:[{1}]' -f $Properties.Name, ($_.Exception.Message -replace "\r\n", ". "))
-		$ProcedureFailed = $true
-	}	
-}
+
+	Write-Verbose -Message ("Creating new Active Directory User Account [{0}]..." -f $Properties.Name)
+    New-ADUser @Properties -PassThru -ErrorAction SilentlyContinue -ErrorVariable NewADUserError
+    
+    Start-Sleep -s 20
+
+	$secProperties = @{
+        'msExchRecipientDisplayType'="-2147483642"
+        'msExchRemoteRecipientType'="3"
+        'mail' = $NC_Email
+        'proxyAddresses' = "SMTP:$($NC_Email)"
+        'mailNickname' = "$NC_SAM"
+        'Extensionattribute15' = "$SspUid"
+        'Extensionattribute14' = "$insertionprop"
+    }
+    set-aduser -identity $nc_sam -add $secProperties
+
+
+#set additional proprties
 #endregion Create user account
 
-#region ssplog
+#region Test user login
+
+Add-Type -AssemblyName System.DirectoryServices.AccountManagement
+$ct = [System.DirectoryServices.AccountManagement.ContextType]::Domain
+$pc = New-Object System.DirectoryServices.AccountManagement.PrincipalContext $ct,$Domain
+If ($pc.ValidateCredentials($NC_SAM,$passwd) -eq $true) {
+    New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "Authentication successfully"
+    $sspresult = "Gereed|$NC_SAM is aangemaakt"
+    }
+else {
+    New-OrmLog -logvar $logvar -status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message "Authentication not successful"
+    $sspresult = "Mislukt|$NC_SAM is niet volledig aangemaakt. $newadusererror"
+}
+
+#endregion Test user login
+
+#region Add to group
+$Employeefunctions = $functions -split ";"
+ForEach ($employeeFunction in $EmployeeFunctions){
+		Add-ADGroupMember -identity $employeeFunction -Members $nc_sam -ErrorAction Stop
+        New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "$NC_SAM added to $employeefunction"
+	}
+
+#endregion Add to group
+ 
+ 
+    New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message "END title: $procname Script"
+
+#startregion ssplog
 $ssplog = "$Kworkingdir\$TDNumber.csv"
 $ssplogvar = New-Object -TypeName PSObject -Property @{
-	'logID' = ([guid]::NewGuid()).guid
-	'youweID' = $TDNumber
-	'sspUid' = $SspUid
-	'action' = "Account aanmaken"
-	'parameters' = (Get-Content -Path $KworkingDir\param.txt -Tail 1)
-	'result' = $sspresult
-	'companyID' = $companyid
-	'last_changed' = '01-01-1700 00:00:01' # Default value in case the account was not created for some reason, in which case whenchanged value can not be determined
+'logID'=([guid]::NewGuid()).guid
+'youweID'=$TDNumber
+'sspUid'=$SspUid
+'action'= "Account aanmaken"
+'parameters'= (get-content $KworkingDir\param.txt -Tail 1)
+'result'= $sspresult
+'companyID'= $companyid
+'last_changed'= get-date (get-aduser $nc_sam -prop whenchanged|select-object -expand whenchanged) -f "dd-MM-yyyy hh:mm:ss"
 }
-
-if ($ProcedureFailed -ne $true)
-{
-	$ssplogvar.last_changed = Get-Date (Get-ADUser -Identity $NC_SAM -Properties whenchanged | Select-Object -ExpandProperty whenchanged) -f "dd-MM-yyyy hh:mm:ss"
-}
-
-New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message ('Creating SSP Log [{0}]...' -f $ssplog)
-$ssplogvar | Export-Csv -Path $ssplog -Delimiter ";" -NoTypeInformation -ErrorAction SilentlyContinue -ErrorVariable ExportCsvError
-if ($ExportCsvError)
-{
-	$ProcedureFailed -eq $true
-	New-OrmLog -logvar $logvar -Status 'Error' -LogDir $KworkingDir -ErrorAction Stop -Message ('Failed to create SSP Log [{0}]' -f $ssplog)
-}
-else
-{
-	New-OrmLog -logvar $logvar -Status 'Info' -LogDir $KworkingDir -ErrorAction Stop -Message ('SSP Log [{0}] successfully created.' -f $ssplog)
-}
+$ssplogvar|export-csv -Path $ssplog -Delimiter ";" -NoTypeInformation
+Stop-Transcript
 #endregion ssplog
 
-if ($ProcedureFailed -eq $true)
-{
-	New-OrmLog -logvar $logvar -Status 'Failure' -LogDir $KworkingDir -ErrorAction Stop -Message ('Procedure failed: [{0}]' -f $Procname)
-}
-else
-{	
-	New-OrmLog -logvar $logvar -Status 'Success' -LogDir $KworkingDir -ErrorAction Stop -Message ('Procedure completed: [{0}]' -f $Procname)
-}
-Stop-Transcript
 #endregion Execution
