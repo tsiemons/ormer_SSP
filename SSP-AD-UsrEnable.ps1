@@ -170,10 +170,10 @@ if ($Server2008)
 New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Enable user account: `'$($Username)`'" -ErrorAction Stop
 Enable-ADAccount -Identity $Username -ErrorVariable aderror
 if ($aderror.length -gt 0){
-    $sspresult = "Gereed|$username is actief"
+    $sspresult = "Mislukt|$username is niet actief $aderror"
 }
 Else{
-    $sspresult = "Mislukt|$username is niet actief $aderror"
+    $sspresult = "Gereed|$username is actief"
 }
 
 #endregion Unlock Account
