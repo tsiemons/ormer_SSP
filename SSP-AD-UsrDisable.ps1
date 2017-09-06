@@ -152,15 +152,16 @@ if ($Username.length -gt 15){
 }
 
 #region Disable Account
-New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Disable user account: `'$($Username)`'" -ErrorAction Stop
+    New-OrmLog -logvar $logvar -status 'Info' -LogDir $KworkingDir -Message "Disable user account: `'$($Username)`'" -ErrorAction Stop
+    
+    Disable-ADAccount -Identity $Username -ErrorVariable aderror
+    if ($aderror.length -gt 0){
+        $sspresult = "Gereed|$username is geblokkeerd"
+    }
+    Else{
+        $sspresult = "Mislukt|$username is niet geblokkeerd $aderror"
+    }
 
-Disable-ADAccount -Identity $Username -ErrorVariable aderror
-if ($aderror.length -gt 0){
-    $sspresult = "Mislukt|$username is niet geblokkeerd $($aderror.message)"
-}
-Else{
-    $sspresult = "Gereed|$username is geblokkeerd"
-}
 #endregion Disable Account
 [XML]$adsettings=get-content "$KworkingDir\$kaseyagroup.xml"
 $companyid = $adsettings.customer.companyguid
