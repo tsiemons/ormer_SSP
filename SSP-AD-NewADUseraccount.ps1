@@ -140,7 +140,7 @@ Function New-RandomComplexPassword
 	}
 }
 
-function Convert-Formatstring
+function Convert-FormatString
 {
 	[CmdletBinding()]
 	param
@@ -292,19 +292,19 @@ if ($ProcedureFailed -ne $true)
 		}
 		
 		# Import XML
-		[XML]$adsettings = Get-Content -Path "$KworkingDir\$kaseyagroup.xml"
+		[XML]$adsettings = Get-Content -Path "$KworkingDir\$kaseyagroup.xml" -ErrorAction Stop
 		$companyid = $adsettings.customer.companyguid
 		#$NewPassword = New-RandomComplexPassword -Length (Get-ADDefaultDomainPasswordPolicy | Select-Object -ExpandProperty MinPasswordLength)
 		
 		# Create vars
-		$NC_Name = Convert-Formatstring -String $adsettings.customer.NC_Name		
+		$NC_Name = Convert-FormatString -String $adsettings.customer.NC_Name		
 		
-		$NC_DisplayName = Convert-Formatstring -String $adsettings.customer.NC_DisplayName
+		$NC_DisplayName = Convert-FormatString -String $adsettings.customer.NC_DisplayName
 		$NC_DisplayName = $NC_DisplayName.replace("  ", " ")
 		
 		if ($username -eq "<None>")
 		{
-			$NC_SAM = Convert-Formatstring -String $adsettings.customer.NC_SAM
+			$NC_SAM = Convert-FormatString -String $adsettings.customer.NC_SAM
 		}
 		else
 		{
@@ -313,7 +313,7 @@ if ($ProcedureFailed -ne $true)
 		
 		if ($Mail -eq "<None>")
 		{
-			$NC_Email = Convert-Formatstring -String $adsettings.customer.NC_Email
+			$NC_Email = Convert-FormatString -String $adsettings.customer.NC_Email
 		}
 		else
 		{
